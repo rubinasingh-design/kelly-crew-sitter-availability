@@ -5,191 +5,370 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Kelly & Crew — Sitter Availability</title>
 <style>
-:root{--bg:#f7f7f5;--card:#fff;--ink:#202020;--muted:#777;--line:#e7e4df;--accent:#111;--free:#eaf7ed;--freeInk:#23733a;--book:#fcebea;--bookInk:#a33b34;--warn:#fff4d6;--warnInk:#8a6200}
-*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-.wrap{max-width:1400px;margin:auto;padding:28px}.top{display:flex;justify-content:space-between;gap:20px;align-items:flex-end;margin-bottom:22px}
-h1{font-size:30px;margin:0 0 4px}.sub{color:var(--muted)}
-.controls{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-wrap:wrap;gap:12px;align-items:end;margin-bottom:18px}
-label{font-size:12px;color:var(--muted);display:block;margin-bottom:5px} input,select,button{font:inherit;border:1px solid #d9d6d0;border-radius:10px;padding:9px 11px;background:#fff}
-button{cursor:pointer;background:#111;color:#fff;border-color:#111}.secondary{background:#fff;color:#111;border-color:#d9d6d0}
-.banner{padding:11px 13px;border-radius:12px;background:var(--warn);color:var(--warnInk);margin-bottom:18px;display:none}
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
-.cardhead{padding:15px 17px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px}
-.legend{display:flex;gap:12px;color:var(--muted);font-size:12px}.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}.green{background:#59ad70}.red{background:#d36b63}
-table{width:100%;border-collapse:collapse;min-width:900px} th,td{border-bottom:1px solid var(--line);padding:9px 8px;text-align:center} th{background:#faf9f7;position:sticky;top:0;z-index:2}.time{width:90px;text-align:left;color:var(--muted);font-weight:600}
-.cell{border-radius:8px;padding:7px 4px;font-size:12px;min-height:34px}.available{background:var(--free);color:var(--freeInk)}.booked{background:var(--book);color:var(--bookInk)}.empty{color:#bbb}
-.scroll{overflow:auto;max-height:70vh}.small{font-size:12px;color:var(--muted)}
-.findbox{display:grid;grid-template-columns:repeat(3,minmax(140px,1fr));gap:12px;margin-bottom:18px}
-.results{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}.result{border:1px solid var(--line);border-radius:12px;padding:13px;background:#fff}.result b{display:block;margin-bottom:3px}.yes{color:var(--freeInk)}.no{color:var(--bookInk)}
-.setup{margin-top:18px}.setup summary{cursor:pointer;color:#555}.setup p{color:#666}.code{font-family:ui-monospace,monospace;background:#f3f2ef;padding:2px 5px;border-radius:5px}
-@media(max-width:700px){.wrap{padding:15px}h1{font-size:24px}.findbox{grid-template-columns:1fr}}
+  :root { --green:#1f9d55; --red:#d64545; --ink:#24303a; --muted:#6b7780; --line:#e6e9ec; --bg:#f6f7f8; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color:var(--ink); background:var(--bg); }
+  .wrap { max-width:1400px; margin:auto; padding:24px; }
+  h1 { margin:0 0 6px; font-size:28px; }
+  .sub { color:var(--muted); margin-bottom:22px; }
+  .card { background:white; border:1px solid var(--line); border-radius:14px; padding:16px; margin-bottom:16px; box-shadow:0 2px 10px rgba(0,0,0,.03); }
+  .controls { display:grid; grid-template-columns:2fr 1fr 1fr auto auto; gap:10px; align-items:end; }
+  label { font-size:12px; font-weight:700; color:var(--muted); display:block; margin-bottom:5px; }
+  input,select,button { height:42px; border:1px solid #d7dce0; border-radius:9px; padding:0 12px; font:inherit; background:white; }
+  button { cursor:pointer; font-weight:700; }
+  button.primary { background:#24303a; color:white; border-color:#24303a; }
+  .status { margin-top:10px; font-size:13px; color:var(--muted); }
+  .tabs { display:flex; gap:8px; margin-bottom:14px; }
+  .tab.active { background:#24303a; color:white; border-color:#24303a; }
+  .nav { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
+  .nav h2 { margin:0; font-size:19px; }
+  .nav .buttons { display:flex; gap:7px; }
+  .legend { display:flex; gap:14px; font-size:12px; color:var(--muted); }
+  .dot { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:5px; }
+  .dot.av { background:var(--green); } .dot.bo { background:var(--red); }
+  .timeline { overflow:auto; border:1px solid var(--line); border-radius:10px; }
+  table { border-collapse:separate; border-spacing:0; width:100%; min-width:950px; }
+  th,td { border-right:1px solid var(--line); border-bottom:1px solid var(--line); }
+  th:last-child,td:last-child { border-right:0; }
+  tr:last-child td { border-bottom:0; }
+  th { background:#fafbfb; position:sticky; top:0; z-index:2; font-size:12px; padding:10px 8px; }
+  td { padding:0; height:30px; text-align:center; font-size:11px; }
+  .timecol { position:sticky; left:0; z-index:3; background:#fafbfb; width:75px; min-width:75px; font-weight:700; color:var(--muted); }
+  th.timecol { z-index:5; }
+  .slot.available { background:#e9f8ef; color:#237746; }
+  .slot.booked { background:#fbeaea; color:#b33b3b; }
+  .slot:hover { outline:2px solid #24303a; outline-offset:-2px; }
+  .daycard { border:1px solid var(--line); border-radius:12px; overflow:hidden; margin-bottom:12px; }
+  .dayhead { padding:10px 12px; background:#fafbfb; display:flex; justify-content:space-between; align-items:center; gap:10px; }
+  .dayhead strong { font-size:14px; }
+  .mini { color:var(--muted); font-size:12px; }
+  .weekgrid { display:grid; grid-template-columns:150px repeat(7,minmax(115px,1fr)); overflow:auto; }
+  .weekgrid > div { border-right:1px solid var(--line); border-bottom:1px solid var(--line); }
+  .weekgrid > div:nth-child(8n) { border-right:0; }
+  .weekhead { background:#fafbfb; padding:10px; font-weight:800; font-size:12px; text-align:center; position:sticky; top:0; z-index:2; }
+  .weekname { padding:12px 10px; font-weight:800; background:#fff; position:sticky; left:0; z-index:1; }
+  .bar { height:34px; margin:6px; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; }
+  .bar.av { background:#e9f8ef; color:#237746; }
+  .bar.bo { background:#fbeaea; color:#b33b3b; }
+  .bar.mixed { background:linear-gradient(90deg,#e9f8ef 0 35%,#fbeaea 35% 65%,#e9f8ef 65%); color:#5c6267; }
+  .availability { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  .person { border:1px solid var(--line); border-radius:10px; padding:12px; }
+  .person h3 { margin:0 0 5px; font-size:15px; }
+  .person .windows { font-size:13px; line-height:1.55; }
+  .good { color:var(--green); font-weight:700; }
+  .bad { color:var(--red); font-weight:700; }
+  .issues { background:#fff8e8; border:1px solid #f1d28b; color:#775b1d; }
+  .issues ul { margin:8px 0 0 18px; padding:0; }
+  .small { font-size:12px; color:var(--muted); }
+  @media(max-width:900px) {
+    .controls { grid-template-columns:1fr 1fr; }
+    .availability { grid-template-columns:1fr; }
+    .weekgrid { min-width:1050px; }
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="top">
-    <div><h1>Kelly & Crew — Sitter Availability</h1><div class="sub">Live availability view built from your booking schedule.</div></div>
-    <button class="secondary" onclick="today()">Today</button>
-  </div>
-
-  <div class="controls">
-    <div><label>Google Sheet CSV URL (optional)</label><input id="sheetUrl" style="min-width:360px" placeholder="Paste your published Google Sheet CSV URL"></div>
-    <button onclick="loadSheet()">Refresh from Google Sheet</button>
-    <button class="secondary" onclick="useEmbedded()">Use current uploaded schedule</button>
-    <div><label>Date</label><input id="date" type="date"></div>
-    <div><label>Show sitter</label><select id="sitter"><option>All sitters</option></select></div>
-  </div>
-
-  <div id="banner" class="banner"></div>
+  <h1>Kelly & Crew — Sitter Availability</h1>
+  <div class="sub">Live availability from your schedule. Booked time is shown in red; open time is green.</div>
 
   <div class="card">
-    <div class="cardhead"><b id="dateTitle">Availability</b><div class="legend"><span><i class="dot green"></i>Available</span><span><i class="dot red"></i>Booked</span></div></div>
-    <div class="scroll"><table id="grid"></table></div>
-  </div>
-
-  <div class="card" style="margin-top:18px;padding:16px">
-    <div style="font-weight:700;margin-bottom:10px">Find a sitter</div>
-    <div class="findbox">
-      <div><label>Date</label><input id="findDate" type="date"></div>
-      <div><label>From</label><input id="from" type="time" value="18:00"></div>
-      <div><label>To</label><input id="to" type="time" value="22:00"></div>
+    <div class="controls">
+      <div>
+        <label>Google Sheet published CSV</label>
+        <input id="sheetUrl" value="https://docs.google.com/spreadsheets/d/e/2PACX-1vTTmBppAO5PAB3_r4aE_F2fic-5kVHUmKCSPEiKyRI5rNwQasj5OkZIsTLqB6xSNA/pub?output=csv">
+      </div>
+      <div>
+        <label>Date</label>
+        <input id="datePicker" type="date" value="2026-09-21">
+      </div>
+      <div>
+        <label>Sitter</label>
+        <select id="sitter"><option value="ALL">All sitters</option></select>
+      </div>
+      <button class="primary" id="refreshBtn">Refresh Sheet</button>
+      <button id="localBtn">Use Current Schedule</button>
     </div>
-    <button onclick="findAvailability()">Show who is free</button>
-    <div id="results" class="results" style="margin-top:12px"></div>
+    <div class="status" id="status">Using the schedule embedded in this page. Refresh Sheet will try the published Google Sheet first.</div>
   </div>
 
-  <details class="setup">
-    <summary><b>How to connect this to your Google Sheet</b></summary>
-    <p>In Google Sheets, use <b>File → Share → Publish to web</b>, publish the schedule sheet, then choose CSV and paste that URL into the box above. Keep your columns in this order: <span class="code">Team Member, Service Type, Start Date, Check-In, End Date, Check-Out</span>.</p>
-    <p>Once connected, the dashboard reads the sheet whenever you click <b>Refresh from Google Sheet</b>. Your sheet remains the master schedule; you do not maintain a second calendar.</p>
-  </details>
+  <div class="tabs">
+    <button class="tab active" id="dayTab">Daily View</button>
+    <button class="tab" id="weekTab">Weekly View</button>
+  </div>
+
+  <div id="app"></div>
 </div>
 
 <script>
-const embedded = [{"team_member": "Rahul", "service": "Stay", "start_date": "16-Sept-2026", "check_in": "12 PM", "end_date": "27-Sept-2026", "check_out": "6 PM"}, {"team_member": "Rahul", "service": "Drop-in", "start_date": "2026-10-03T00:00:00", "check_in": "4 PM", "end_date": "2026-10-03T00:00:00", "check_out": "11.30 PM"}, {"team_member": "Rahul", "service": "Stay", "start_date": "2026-10-16T00:00:00", "check_in": "9 AM", "end_date": "2026-10-21T00:00:00", "check_out": "9 PM"}, {"team_member": "Evan", "service": "Trial", "start_date": "15-Sept-2026", "check_in": "8 AM", "end_date": "15-Sept-2026", "check_out": "9 AM"}, {"team_member": "Evan", "service": "Drop in", "start_date": "20-Sept-2026", "check_in": "5 PM", "end_date": "20-Sept-2026", "check_out": "11 PM"}, {"team_member": "Evan", "service": "Drop in", "start_date": "22-Sept-2026", "check_in": "12.30 PM", "end_date": "22-Sept-2026", "check_out": "5.30 PM"}, {"team_member": "Evan", "service": "Drop-in", "start_date": "2026-10-01T00:00:00", "check_in": "3 PM", "end_date": "2026-10-06T00:00:00", "check_out": "8 PM"}, {"team_member": "Evan", "service": "Drop-in", "start_date": "2026-10-02T00:00:00", "check_in": "7 PM- 8.30 PM", "end_date": "2026-10-02T00:00:00", "check_out": "7 PM- 8.30 PM"}, {"team_member": "Evan", "service": "Drop-in", "start_date": "2026-10-03T00:00:00", "check_in": "8-9.30 am, 7-8.30 pm", "end_date": "2026-10-05T00:00:00", "check_out": "8-8.30 am, 7-8.30 pm"}, {"team_member": "Evan", "service": "Drop-in", "start_date": "2026-10-06T00:00:00", "check_in": "8 AM", "end_date": "2026-10-05T00:00:00", "check_out": "9.30 AM"}, {"team_member": "Evan", "service": "Drop-in", "start_date": "2026-10-10T00:00:00", "check_in": "8 AM", "end_date": "2026-10-23T00:00:00", "check_out": "9.30 AM"}, {"team_member": "Evan", "service": "Drop-in", "start_date": "2026-10-10T00:00:00", "check_in": "10.30 AM", "end_date": "2026-10-15T00:00:00", "check_out": "12 PM"}, {"team_member": "Kritan", "service": "Daily Drop-in", "start_date": "06-Sept-2026", "check_in": "8.15 am to 2.15 pm", "end_date": "14-Sept-2026", "check_out": "8.15 am to 2.15 pm"}, {"team_member": "Kritan", "service": "Stay", "start_date": "17-Sept-2026", "check_in": "5 PM", "end_date": "20-Sept-2026", "check_out": "10 PM"}, {"team_member": "Kritan", "service": "Stay", "start_date": "2026-10-14T00:00:00", "check_in": "5 PM", "end_date": "2026-10-23T00:00:00", "check_out": "8 PM"}];
-let bookings = embedded;
-let sitters = [];
+const DEFAULT_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTTmBppAO5PAB3_r4aE_F2fic-5kVHUmKCSPEiKyRI5rNwQasj5OkZIsTLqB6xSNA/pub?output=csv";
+const EMBEDDED = [["Rahul", "Stay", "16-Sept-2026", "12 PM", "27-Sept-2026", "6 PM"], ["Rahul", "Drop-in", "2026-10-03", "4 PM", "2026-10-03", "11.30 PM"], ["Rahul", "Stay", "2026-10-16", "9 AM", "2026-10-21", "9 PM"], ["Evan", "Trial", "15-Sept-2026", "8 AM", "15-Sept-2026", "9 AM"], ["Evan", "Drop in", "20-Sept-2026", "5 PM", "20-Sept-2026", "11 PM"], ["Evan", "Drop in", "22-Sept-2026", "12.30 PM", "22-Sept-2026", "5.30 PM"], ["Evan", "Drop-in", "2026-10-01", "3 PM", "2026-10-06", "8 PM"], ["Evan", "Drop-in", "2026-10-02", "7 PM- 8.30 PM", "2026-10-02", "7 PM- 8.30 PM"], ["Evan", "Drop-in", "2026-10-03", "8-9.30 am, 7-8.30 pm", "2026-10-05", "8-8.30 am, 7-8.30 pm"], ["Evan", "Drop-in", "2026-10-06", "8 AM", "2026-10-05", "9.30 AM"], ["Evan", "Drop-in", "2026-10-10", "8 AM", "2026-10-23", "9.30 AM"], ["Evan", "Drop-in", "2026-10-10", "10.30 AM", "2026-10-15", "12 PM"], ["Kritan", "Daily Drop-in", "06-Sept-2026", "8.15 am to 2.15 pm", "14-Sept-2026", "8.15 am to 2.15 pm"], ["Kritan", "Stay", "17-Sept-2026", "5 PM", "20-Sept-2026", "10 PM"], ["Kritan", "Stay", "2026-10-14", "5 PM", "2026-10-23", "8 PM"]];
+let bookings = [];
+let sitters = ["Rahul","Evan","Kritan"];
 
-function parseDate(v){
-  if(!v) return null;
-  let s=String(v).trim();
-  // Google/Excel-ish dates
-  let d=new Date(s);
-  if(!isNaN(d)) return new Date(d.getFullYear(),d.getMonth(),d.getDate());
-  const m=s.match(/(\d{1,2})[-\/ ]([A-Za-z]{3,9})[-\/ ](\d{4})/);
-  if(m){let mon=new Date(Date.parse(m[2]+" 1, 2000")).getMonth(); return new Date(+m[3],mon,+m[1]);}
-  return null;
-}
-function timeRanges(s){
-  if(!s) return [];
-  s=String(s).toLowerCase().replace(/–|—/g,"-").replace(/\./g,":").replace(/to/g,"-");
-  // Multiple ranges separated by comma
-  return s.split(",").map(x=>x.trim()).map(x=>{
-    let m=x.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\s*-\s*(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i);
-    if(!m) return null;
-    let ap1=m[3], ap2=m[6]||ap1;
-    let h1=+m[1], mi1=+(m[2]||0), h2=+m[4], mi2=+(m[5]||0);
-    if(ap1==="pm"&&h1<12)h1+=12;if(ap1==="am"&&h1===12)h1=0;
-    if(ap2==="pm"&&h2<12)h2+=12;if(ap2==="am"&&h2===12)h2=0;
-    return [h1*60+mi1,h2*60+mi2];
-  }).filter(Boolean);
-}
-function singleTime(s){
-  if(!s)return null;
-  let x=String(s).toLowerCase().replace(/\./g,":");
-  let m=x.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i); if(!m)return null;
-  let h=+m[1], mi=+(m[2]||0), ap=m[3];
-  if(ap==="pm"&&h<12)h+=12;if(ap==="am"&&h===12)h=0;
-  return h*60+mi;
-}
-function normalize(){
-  bookings=bookings.map(b=>({...b,team_member:String(b.team_member||"").trim()})).filter(b=>b.team_member);
-  sitters=[...new Set(bookings.map(b=>b.team_member))];
-  const sel=document.getElementById("sitter"); sel.innerHTML='<option>All sitters</option>'+sitters.map(s=>`<option>${escapeHtml(s)}</option>`).join("");
-}
-function overlaps(b,date,minute){
-  let sd=parseDate(b.start_date), ed=parseDate(b.end_date); if(!sd||!ed)return false;
-  const day=new Date(date.getFullYear(),date.getMonth(),date.getDate());
-  if(day<sd||day>ed)return false;
-  // Same-day / boundary handling. For multi-day stays, mark from check-in on first day,
-  // through check-out on last day; full middle days are booked.
-  let ranges=[];
-  if(day.getTime()===sd.getTime() && day.getTime()===ed.getTime()){
-    ranges=timeRanges(b.check_in); if(!ranges.length){let a=singleTime(b.check_in),z=singleTime(b.check_out);if(a!=null&&z!=null)ranges=[[a,z]];}
-    if(ranges.length){let out=timeRanges(b.check_out); if(out.length && ranges.length===1) ranges=[[ranges[0][0],out[out.length-1][1]]];}
-  } else if(day.getTime()===sd.getTime()){
-    ranges=timeRanges(b.check_in); if(!ranges.length){let a=singleTime(b.check_in); if(a!=null)ranges=[[a,24*60]];}
-    // Split drop-ins on first day are handled by their explicit range(s)
-  } else if(day.getTime()===ed.getTime()){
-    ranges=timeRanges(b.check_out); if(!ranges.length){let z=singleTime(b.check_out);if(z!=null)ranges=[[0,z]];}
-  } else {
-    ranges=[[0,24*60]];
+const $ = id => document.getElementById(id);
+const pad = n => String(n).padStart(2,"0");
+const dateKey = (y,m,d) => `${y}-${pad(m)}-${pad(d)}`;
+
+function parseDate(v) {
+  if (v instanceof Date && !isNaN(v)) return new Date(v.getFullYear(),v.getMonth(),v.getDate());
+  let s = String(v ?? "").trim();
+  if (!s) return null;
+  let m = s.match(/^(\d{4})[\-\/]([01]?\d)[\-\/]([0-3]?\d)/);
+  if (m) return new Date(+m[1],+m[2]-1,+m[3]);
+  m = s.match(/^(\d{1,2})[\-\/]([A-Za-z]+)[\-\/](\d{4})$/);
+  if (m) {
+    const months={jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,sept:8,oct:9,nov:10,dec:11};
+    const mm=months[m[2].toLowerCase().slice(0,4)] ?? months[m[2].toLowerCase().slice(0,3)];
+    if (mm!==undefined) return new Date(+m[3],mm,+m[1]);
   }
-  return ranges.some(r=>minute<r[1] && minute+30>r[0]);
+  m = s.match(/^(\d{1,2})[\-\/](\d{1,2})[\-\/](\d{4})$/);
+  if (m) return new Date(+m[3],+m[2]-1,+m[1]);
+  const d=new Date(s);
+  return isNaN(d)?null:new Date(d.getFullYear(),d.getMonth(),d.getDate());
 }
-function status(s,date,minute){
-  const bs=bookings.filter(b=>b.team_member===s);
-  return bs.some(b=>overlaps(b,date,minute));
+
+function normalizeTimeText(s) {
+  return String(s??"").trim().replace(/\s+/g," ").replace(/\.(\d{1,2})(?=\s*(?:am|pm)\b)/gi,":$1");
 }
-function fmt12(min){
-  let h=Math.floor(min/60), m=min%60, ap=h>=12?"PM":"AM"; h=h%12||12;
-  return h+(m?":"+String(m).padStart(2,"0"):"")+" "+ap;
+
+function toMinutes(t, fallbackMeridiem) {
+  let s=normalizeTimeText(t).toLowerCase().replace(/\s+/g,"");
+  if (!s) return null;
+  let m=s.match(/^(\d{1,2})(?::(\d{1,2}))?(am|pm)?$/i);
+  if (!m) return null;
+  let h=+m[1], min=+(m[2]||0), ap=m[3]||fallbackMeridiem||"";
+  if (ap) {
+    if (h===12) h=0;
+    if (ap==="pm") h+=12;
+  }
+  if (h>23 || min>59) return null;
+  return h*60+min;
 }
-function dayLabel(d){return d.toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"long",year:"numeric"});}
-function render(){
-  const v=document.getElementById("date").value; if(!v)return;
-  const [y,m,dd]=v.split("-").map(Number), date=new Date(y,m-1,dd);
-  document.getElementById("dateTitle").textContent=dayLabel(date);
-  const chosen=document.getElementById("sitter").value;
-  const people=chosen==="All sitters"?sitters:[chosen];
-  let out="<thead><tr><th class='time'>Time</th>"+people.map(s=>`<th>${escapeHtml(s)}</th>`).join("")+"</tr></thead><tbody>";
-  for(let t=0;t<24*60;t+=30){
-    out+=`<tr><td class='time'>${fmt12(t)}</td>`;
-    for(const s of people){
-      const b=status(s,date,t);
-      out+=`<td><div class="cell ${b?'booked':'available'}">${b?'BOOKED':'AVAILABLE'}</div></td>`;
+
+function parseRanges(text) {
+  let s=normalizeTimeText(text);
+  if (!s) return [];
+  // Split multiple visits: commas or semicolon separators.
+  return s.split(/[,;]+/).map(x=>x.trim()).filter(Boolean).flatMap(part=>{
+    part=part.replace(/\s+to\s+/i,"-");
+    let pieces=part.split(/\s*-\s*/);
+    if (pieces.length<2) {
+      const x=toMinutes(part);
+      return x==null?[]:[[x,Math.min(x+15,1440)]];
     }
-    out+="</tr>";
-  }
-  out+="</tbody>"; document.getElementById("grid").innerHTML=out;
-}
-function findAvailability(){
-  const v=document.getElementById("findDate").value; if(!v)return;
-  const [y,m,d]=v.split("-").map(Number), date=new Date(y,m-1,d);
-  const a=document.getElementById("from").value.split(":").map(Number), z=document.getElementById("to").value.split(":").map(Number);
-  const from=a[0]*60+a[1], to=z[0]*60+z[1];
-  const box=document.getElementById("results");
-  box.innerHTML=sitters.map(s=>{
-    let free=true; for(let t=from;t<to;t+=30) if(status(s,date,t)){free=false;break;}
-    return `<div class="result"><b>${escapeHtml(s)}</b><span class="${free?'yes':'no'}">${free?'✓ Available':'✕ Booked during this window'}</span></div>`;
-  }).join("");
-}
-async function loadSheet(){
-  const url=document.getElementById("sheetUrl").value.trim();
-  if(!url){showBanner("Paste your published Google Sheet CSV URL first.");return}
-  try{
-    const res=await fetch(url); if(!res.ok)throw new Error("Could not read the sheet");
-    const text=await res.text(); bookings=parseCSV(text); normalize(); render(); findAvailability();
-    showBanner("Updated from Google Sheet.",false);
-  }catch(e){showBanner("I couldn't read that sheet URL. Make sure the Google Sheet is published to the web as CSV and the URL is correct.");}
-}
-function parseCSV(text){
-  const lines=text.replace(/\r/g,"").split("\n").filter(x=>x.trim());
-  const rows=lines.map(line=>{
-    let out=[],cur="",q=false;
-    for(let i=0;i<line.length;i++){let c=line[i];if(c=='"'){if(q&&line[i+1]=='"'){cur+='"';i++}else q=!q}else if(c==","&&!q){out.push(cur);cur=""}else cur+=c}out.push(cur);return out;
+    let a=pieces[0], b=pieces.slice(1).join("-");
+    let apB=(b.match(/(am|pm)\b/i)||[])[1]||"";
+    let apA=(a.match(/(am|pm)\b/i)||[])[1]||apB;
+    let start=toMinutes(a,apA), end=toMinutes(b,apB||apA);
+    if (start==null||end==null) return [];
+    // If no meridiem on either side, use the natural daytime interpretation.
+    if (end<start && !/am|pm/i.test(part)) end+=12*60;
+    if (end<start) end+=12*60;
+    return [[start,Math.min(end,1440)]];
   });
-  const h=rows.shift().map(x=>x.trim().toLowerCase());
-  const idx=n=>h.findIndex(x=>x.replace(/[^a-z]/g,"").includes(n));
-  const iM=idx("teammember"),iS=idx("servicetype"),iSD=idx("startdate"),iCI=idx("checkin"),iED=idx("enddate"),iCO=idx("checkout");
-  return rows.map(r=>({team_member:r[iM],service:r[iS],start_date:r[iSD],check_in:r[iCI],end_date:r[iED],check_out:r[iCO]})).filter(x=>x.team_member);
 }
-function showBanner(msg,show=true){const b=document.getElementById("banner");b.textContent=msg;b.style.display=show?"block":"block"; if(!show)setTimeout(()=>b.style.display="none",2500)}
-function today(){const d=new Date();document.getElementById("date").value=iso(d);document.getElementById("findDate").value=iso(d);render();findAvailability()}
-function iso(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
-function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
-document.getElementById("date").addEventListener("change",render);
-document.getElementById("sitter").addEventListener("change",render);
-window.addEventListener("load",()=>{normalize();today();});
+
+function daysBetween(a,b) {
+  const out=[]; let d=new Date(a);
+  while(d<=b) { out.push(new Date(d)); d.setDate(d.getDate()+1); }
+  return out;
+}
+
+function normalizeRows(rows) {
+  const result=[]; const issues=[];
+  rows.forEach((r,i)=>{
+    const [person,type,startDate,checkIn,endDate,checkOut]=r;
+    if (!person || !startDate || !endDate) return;
+    const sd=parseDate(startDate), ed=parseDate(endDate);
+    if (!sd||!ed) { issues.push(`Row ${i+1} has an unreadable date.`); return; }
+    if (ed<sd) { issues.push(`Row ${i+1} (${person}) has an end date before its start date, so it was ignored.`); return; }
+    const inRanges=parseRanges(checkIn), outRanges=parseRanges(checkOut);
+    const service=String(type||"").toLowerCase();
+    result.push({person,type,start:sd,end:ed,inRanges,outRanges,service,rawIndex:i+1});
+  });
+  return {result,issues};
+}
+
+function blocksForDate(b,d) {
+  const k=dateKey(d.getFullYear(),d.getMonth()+1,d.getDate());
+  const sk=dateKey(b.start.getFullYear(),b.start.getMonth()+1,b.start.getDate());
+  const ek=dateKey(b.end.getFullYear(),b.end.getMonth()+1,b.end.getDate());
+  if(k<sk||k>ek) return [];
+  const isStay=b.service.includes("stay");
+  const isMulti=sk!==ek;
+  if(isStay) {
+    if(k===sk) return b.inRanges.length ? [[Math.min(...b.inRanges.map(x=>x[0])),1440]] : [[0,1440]];
+    if(k===ek) return b.outRanges.length ? [[0,Math.max(...b.outRanges.map(x=>x[1]))]] : [[0,1440]];
+    return [[0,1440]];
+  }
+  // Drop-in / Trial / Daily Drop-in: time ranges are visits, repeated on each date
+  // for a multi-day row. This keeps split visits separate.
+  if(isMulti) {
+    if(k===ek && b.outRanges.length && b.inRanges.length===0) return b.outRanges;
+    return b.inRanges.length ? b.inRanges : b.outRanges;
+  }
+  if(b.inRanges.length && b.outRanges.length) {
+    // Same-day ordinary booking: pair first start with last end.
+    if(b.inRanges.length===1 && b.outRanges.length===1) return [[b.inRanges[0][0],b.outRanges[0][1]]];
+    // For split visits, preserve them as separate blocked windows.
+    return b.inRanges.map((x,idx)=>[x[0], (b.outRanges[idx]||b.outRanges[b.outRanges.length-1]||x)[1]]);
+  }
+  return b.inRanges.length?b.inRanges:b.outRanges;
+}
+
+function isBooked(person,d,slotStart,slotEnd) {
+  return bookings.some(b=>b.person===person && blocksForDate(b,d).some(([a,z])=>slotStart<z && slotEnd>a));
+}
+
+function mergeIntervals(intervals) {
+  const a=intervals.filter(x=>x[1]>x[0]).sort((x,y)=>x[0]-y[0]);
+  const out=[];
+  a.forEach(x=>{ const last=out[out.length-1]; if(last&&x[0]<=last[1]) last[1]=Math.max(last[1],x[1]); else out.push(x.slice()); });
+  return out;
+}
+
+function fmtMin(m) {
+  if(m>=1440) return "12 AM";
+  let h=Math.floor(m/60), mm=m%60, ap=h>=12?"PM":"AM", hh=h%12||12;
+  return `${hh}:${pad(mm)} ${ap}`.replace(":00 "," ");
+}
+function fmtDate(d) { return d.toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short"}); }
+
+function availableWindows(person,d) {
+  const booked=mergeIntervals(bookings.filter(b=>b.person===person).flatMap(b=>blocksForDate(b,d)));
+  let cur=0,out=[];
+  booked.forEach(([a,z])=>{if(cur<a)out.push([cur,a]); cur=Math.max(cur,z);});
+  if(cur<1440)out.push([cur,1440]);
+  return out;
+}
+
+function renderSitters() {
+  const selected=$("sitter").value;
+  $("sitter").innerHTML=`<option value="ALL">All sitters</option>`+sitters.map(s=>`<option ${s===selected?"selected":""}>${s}</option>`).join("");
+}
+
+function renderDay() {
+  const d=parseDate($("datePicker").value); if(!d)return;
+  const people=$("sitter").value==="ALL"?sitters:[$("sitter").value];
+  let h=`<div class="card"><div class="nav"><h2>${fmtDate(d)} — Daily View</h2><div class="buttons"><button onclick="moveDay(-1)">‹ Prev</button><button onclick="moveDay(1)">Next ›</button></div></div>`;
+  h+=`<div class="legend"><span><i class="dot av"></i>Available</span><span><i class="dot bo"></i>Booked</span><span class="small">15-minute resolution</span></div></div>`;
+  h+=`<div class="card"><div class="availability">`;
+  people.forEach(p=>{
+    const wins=availableWindows(p,d);
+    const text=wins.length?wins.map(x=>`${fmtMin(x[0])}–${fmtMin(x[1])}`).join(", "):"No availability";
+    h+=`<div class="person"><h3>${p}</h3><div class="windows ${wins.length?"good":"bad"}">${text}</div></div>`;
+  });
+  h+=`</div></div>`;
+  h+=`<div class="card"><div class="timeline"><table><thead><tr><th class="timecol">Time</th>${people.map(p=>`<th>${p}</th>`).join("")}</tr></thead><tbody>`;
+  for(let m=0;m<1440;m+=15){
+    h+=`<tr><td class="timecol">${fmtMin(m)}</td>`;
+    people.forEach(p=>h+=`<td class="slot ${isBooked(p,d,m,m+15)?"booked":"available"}" title="${p} — ${fmtMin(m)} to ${fmtMin(m+15)}">${isBooked(p,d,m,m+15)?"BOOKED":"AVAILABLE"}</td>`);
+    h+=`</tr>`;
+  }
+  h+=`</tbody></table></div></div>`;
+  h+=issuesHtml();
+  $("app").innerHTML=h;
+}
+
+function startOfWeek(d) {
+  const x=new Date(d), day=x.getDay(); x.setDate(x.getDate()-day); return x;
+}
+function renderWeek() {
+  const d=parseDate($("datePicker").value); if(!d)return;
+  const sun=startOfWeek(d), people=$("sitter").value==="ALL"?sitters:[$("sitter").value];
+  const days=Array.from({length:7},(_,i)=>{let x=new Date(sun);x.setDate(x.getDate()+i);return x;});
+  let h=`<div class="card"><div class="nav"><h2>Week of ${fmtDate(days[0])} – ${fmtDate(days[6])}</h2><div class="buttons"><button onclick="moveWeek(-7)">‹ Prev week</button><button onclick="moveWeek(7)">Next week ›</button></div></div><div class="legend"><span><i class="dot av"></i>Available</span><span><i class="dot bo"></i>Booked</span></div></div>`;
+  h+=`<div class="card"><div class="weekgrid"><div class="weekhead">Sitter</div>${days.map(x=>`<div class="weekhead">${fmtDate(x)}</div>`).join("")}`;
+  people.forEach(p=>{
+    h+=`<div class="weekname">${p}</div>`;
+    days.forEach(day=>{
+      const wins=availableWindows(p,day), booked=mergeIntervals(bookings.filter(b=>b.person===p).flatMap(b=>blocksForDate(b,day)));
+      let cls=booked.length===0?"av":wins.length===0?"bo":"mixed";
+      let label=booked.length===0?"AVAILABLE":wins.length===0?"BOOKED":"MIXED";
+      h+=`<div><div class="bar ${cls}" title="${p} — ${fmtDate(day)}: ${label}">${label}</div><div class="small" style="padding:0 8px 8px">${wins.length?wins.map(x=>`${fmtMin(x[0])}–${fmtMin(x[1])}`).join(", "):"No open time"}</div></div>`;
+    });
+  });
+  h+=`</div></div>`;
+  h+=issuesHtml();
+  $("app").innerHTML=h;
+}
+
+function issuesHtml() {
+  return window.scheduleIssues?.length ? `<div class="card issues"><strong>Schedule issue(s) detected</strong><ul>${window.scheduleIssues.map(x=>`<li>${x}</li>`).join("")}</ul><div class="small" style="margin-top:8px">The invalid row(s) were excluded rather than creating misleading availability.</div></div>` : "";
+}
+
+function moveDay(n) {
+  const d=parseDate($("datePicker").value); d.setDate(d.getDate()+n);
+  $("datePicker").value=dateKey(d.getFullYear(),d.getMonth()+1,d.getDate()); renderDay();
+}
+function moveWeek(n) {
+  const d=parseDate($("datePicker").value); d.setDate(d.getDate()+n);
+  $("datePicker").value=dateKey(d.getFullYear(),d.getMonth()+1,d.getDate()); renderWeek();
+}
+
+function loadRows(rows,source) {
+  const norm=normalizeRows(rows); bookings=norm.result; window.scheduleIssues=norm.issues;
+  sitters=[...new Set(bookings.map(b=>b.person))].filter(Boolean);
+  renderSitters(); renderDay();
+  $("status").textContent=`Loaded ${bookings.length} valid bookings from ${source}.`+(window.scheduleIssues.length?` ${window.scheduleIssues.length} schedule issue(s) flagged below.`:"");
+}
+
+function csvParse(text) {
+  const rows=[]; let row=[], cell="", quote=false;
+  for(let i=0;i<text.length;i++) {
+    const c=text[i], n=text[i+1];
+    if(c=='"' && quote && n=='"') {cell+='"';i++;continue;}
+    if(c=='"') {quote=!quote;continue;}
+    if(c=="," && !quote) {row.push(cell);cell="";continue;}
+    if((c=="\n"||c=="\r")&&!quote) {
+      if(c=="\r"&&n=="\n")i++;
+      row.push(cell);cell="";
+      if(row.some(x=>x.trim()!=="")) rows.push(row);
+      row=[]; continue;
+    }
+    cell+=c;
+  }
+  row.push(cell); if(row.some(x=>x.trim()!==""))rows.push(row);
+  return rows;
+}
+
+async function fetchCSV(url) {
+  const res=await fetch(url,{cache:"no-store"});
+  if(!res.ok) throw new Error(`HTTP ${res.status}`);
+  const text=await res.text();
+  if(!text || text.trim().startsWith("<")) throw new Error("The published URL did not return CSV data.");
+  return csvParse(text);
+}
+
+function rowsFromCSV(rows) {
+  if(!rows.length)return [];
+  const header=rows[0].map(x=>String(x).trim().toLowerCase());
+  const idx=(...names)=>names.map(n=>header.indexOf(n)).find(i=>i>=0);
+  const ti=idx("team member","team","sitter"), si=idx("service type","service"), sd=idx("start date","start"), ci=idx("check-in","check in","checkin"), ed=idx("end date","end"), co=idx("check-out","check out","checkout");
+  if([ti,sd,ci,ed,co].some(i=>i==null||i<0)) throw new Error("I found the sheet, but its columns were not recognised. Required: Team Member, Start Date, Check-In, End Date, Check-Out.");
+  return rows.slice(1).map(r=>[r[ti],si>=0?r[si]:"",r[sd],r[ci],r[ed],r[co]]);
+}
+
+async function refreshSheet() {
+  const url=$("sheetUrl").value.trim()||DEFAULT_SHEET_URL;
+  $("status").textContent="Trying to read the published Google Sheet…";
+  try {
+    const rows=await fetchCSV(url);
+    loadRows(rowsFromCSV(rows),"your Google Sheet");
+  } catch(e) {
+    $("status").textContent="I couldn't read that published CSV directly from this browser. The current schedule is still available below. If this persists on GitHub Pages, the Google Sheet needs to be published with the sheet tab set to public.";
+  }
+}
+
+$("dayTab").onclick=()=>{ $("dayTab").classList.add("active");$("weekTab").classList.remove("active");renderDay(); };
+$("weekTab").onclick=()=>{ $("weekTab").classList.add("active");$("dayTab").classList.remove("active");renderWeek(); };
+$("datePicker").onchange=()=>{ document.getElementById("weekTab").classList.contains("active")?renderWeek():renderDay(); };
+$("sitter").onchange=()=>{ document.getElementById("weekTab").classList.contains("active")?renderWeek():renderDay(); };
+$("refreshBtn").onclick=refreshSheet;
+$("localBtn").onclick=()=>loadRows(EMBEDDED,"the uploaded schedule");
+
+loadRows(EMBEDDED,"the uploaded schedule");
 </script>
-</body></html>
+</body>
+</html>
