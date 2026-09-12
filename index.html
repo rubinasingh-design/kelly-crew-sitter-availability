@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kelly & Crew — Sitter Availability</title>
+<style>
+:root{--bg:#f7f7f5;--card:#fff;--ink:#202020;--muted:#777;--line:#e7e4df;--accent:#111;--free:#eaf7ed;--freeInk:#23733a;--book:#fcebea;--bookInk:#a33b34;--warn:#fff4d6;--warnInk:#8a6200}
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.wrap{max-width:1400px;margin:auto;padding:28px}.top{display:flex;justify-content:space-between;gap:20px;align-items:flex-end;margin-bottom:22px}
+h1{font-size:30px;margin:0 0 4px}.sub{color:var(--muted)}
+.controls{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-wrap:wrap;gap:12px;align-items:end;margin-bottom:18px}
+label{font-size:12px;color:var(--muted);display:block;margin-bottom:5px} input,select,button{font:inherit;border:1px solid #d9d6d0;border-radius:10px;padding:9px 11px;background:#fff}
+button{cursor:pointer;background:#111;color:#fff;border-color:#111}.secondary{background:#fff;color:#111;border-color:#d9d6d0}
+.banner{padding:11px 13px;border-radius:12px;background:var(--warn);color:var(--warnInk);margin-bottom:18px;display:none}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.cardhead{padding:15px 17px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px}
+.legend{display:flex;gap:12px;color:var(--muted);font-size:12px}.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}.green{background:#59ad70}.red{background:#d36b63}
+table{width:100%;border-collapse:collapse;min-width:900px} th,td{border-bottom:1px solid var(--line);padding:9px 8px;text-align:center} th{background:#faf9f7;position:sticky;top:0;z-index:2}.time{width:90px;text-align:left;color:var(--muted);font-weight:600}
+.cell{border-radius:8px;padding:7px 4px;font-size:12px;min-height:34px}.available{background:var(--free);color:var(--freeInk)}.booked{background:var(--book);color:var(--bookInk)}.empty{color:#bbb}
+.scroll{overflow:auto;max-height:70vh}.small{font-size:12px;color:var(--muted)}
+.findbox{display:grid;grid-template-columns:repeat(3,minmax(140px,1fr));gap:12px;margin-bottom:18px}
+.results{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}.result{border:1px solid var(--line);border-radius:12px;padding:13px;background:#fff}.result b{display:block;margin-bottom:3px}.yes{color:var(--freeInk)}.no{color:var(--bookInk)}
+.setup{margin-top:18px}.setup summary{cursor:pointer;color:#555}.setup p{color:#666}.code{font-family:ui-monospace,monospace;background:#f3f2ef;padding:2px 5px;border-radius:5px}
+@media(max-width:700px){.wrap{padding:15px}h1{font-size:24px}.findbox{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div><h1>Kelly & Crew — Sitter Availability</h1><div class="sub">Live availability view built from your booking schedule.</div></div>
+    <button class="secondary" onclick="today()">Today</button>
+  </div>
+
+  <div class="controls">
+    <div><label>Google Sheet CSV URL (optional)</label><input id="sheetUrl" style="min-width:360px" placeholder="Paste your published Google Sheet CSV URL"></div>
+    <button onclick="loadSheet()">Refresh from Google Sheet</button>
+    <button class="secondary" onclick="useEmbedded()">Use current uploaded schedule</button>
+    <div><label>Date</label><input id="date" type="date"></div>
+    <div><label>Show sitter</label><select id="sitter"><option>All sitters</option></select></div>
+  </div>
+
+  <div id="banner" class="banner"></div>
+
+  <div class="card">
+    <div class="cardhead"><b id="dateTitle">Availability</b><div class="legend"><span><i class="dot green"></i>Available</span><span><i class="dot red"></i>Booked</span></div></div>
+    <div class="scroll"><table id="grid"></table></div>
+  </div>
+
+  <div class="card" style="margin-top:18px;padding:16px">
+    <div style="font-weight:700;margin-bottom:10px">Find a sitter</div>
+    <div class="findbox">
+      <div><label>Date</label><input id="findDate" type="date"></div>
+      <div><label>From</label><input id="from" type="time" value="18:00"></div>
+      <div><label>To</label><input id="to" type="time" value="22:00"></div>
+    </div>
+    <button onclick="findAvailability()">Show who is free</button>
+    <div id="results" class="results" style="margin-top:12px"></div>
+  </div>
+
+  <details class="setup">
+    <summary><b>How to connect this to your Google Sheet</b></summary>
+    <p>In Google Sheets, use <b>File → Share → Publish to web</b>, publish the schedule sheet, then choose CSV and paste that URL into the box above. Keep your columns in this order: <span class="code">Team Member, Service Type, Start Date, Check-In, End Date, Check-Out</span>.</p>
+    <p>Once connected, the dashboard reads the sheet whenever you click <b>Refresh from Google Sheet</b>. Your sheet remains the master schedule; you do not maintain a second calendar.</p>
+  </details>
+</div>
+
+<script>
+const embedded = [{"team_member": "Rahul", "service": "Stay", "start_date": "16-Sept-2026", "check_in": "12 PM", "end_date": "27-Sept-2026", "check_out": "6 PM"}, {"team_member": "Rahul", "service": "Drop-in", "start_date": "2026-10-03T00:00:00", "check_in": "4 PM", "end_date": "2026-10-03T00:00:00", "check_out": "11.30 PM"}, {"team_member": "Rahul", "service": "Stay", "start_date": "2026-10-16T00:00:00", "check_in": "9 AM", "end_date": "2026-10-21T00:00:00", "check_out": "9 PM"}, {"team_member": "Evan", "service": "Trial", "start_date": "15-Sept-2026", "check_in": "8 AM", "end_date": "15-Sept-2026", "check_out": "9 AM"}, {"team_member": "Evan", "service": "Drop in", "start_date": "20-Sept-2026", "check_in": "5 PM", "end_date": "20-Sept-2026", "check_out": "11 PM"}, {"team_member": "Evan", "service": "Drop in", "start_date": "22-Sept-2026", "check_in": "12.30 PM", "end_date": "22-Sept-2026", "check_out": "5.30 PM"}, {"team_member": "Evan", "service": "Drop-in", "start_date": "2026-10-01T00:00:00", "check_in": "3 PM", "end_date": "2026-10-06T00:00:00", "check_out": "8 PM"}, {"team_member": "Evan", "service": "Drop-in", "start_date": "2026-10-02T00:00:00", "check_in": "7 PM- 8.30 PM", "end_date": "2026-10-02T00:00:00", "check_out": "7 PM- 8.30 PM"}, {"team_member": "Evan", "service": "Drop-in", "start_date": "2026-10-03T00:00:00", "check_in": "8-9.30 am, 7-8.30 pm", "end_date": "2026-10-05T00:00:00", "check_out": "8-8.30 am, 7-8.30 pm"}, {"team_member": "Evan", "service": "Drop-in", "start_date": "2026-10-06T00:00:00", "check_in": "8 AM", "end_date": "2026-10-05T00:00:00", "check_out": "9.30 AM"}, {"team_member": "Evan", "service": "Drop-in", "start_date": "2026-10-10T00:00:00", "check_in": "8 AM", "end_date": "2026-10-23T00:00:00", "check_out": "9.30 AM"}, {"team_member": "Evan", "service": "Drop-in", "start_date": "2026-10-10T00:00:00", "check_in": "10.30 AM", "end_date": "2026-10-15T00:00:00", "check_out": "12 PM"}, {"team_member": "Kritan", "service": "Daily Drop-in", "start_date": "06-Sept-2026", "check_in": "8.15 am to 2.15 pm", "end_date": "14-Sept-2026", "check_out": "8.15 am to 2.15 pm"}, {"team_member": "Kritan", "service": "Stay", "start_date": "17-Sept-2026", "check_in": "5 PM", "end_date": "20-Sept-2026", "check_out": "10 PM"}, {"team_member": "Kritan", "service": "Stay", "start_date": "2026-10-14T00:00:00", "check_in": "5 PM", "end_date": "2026-10-23T00:00:00", "check_out": "8 PM"}];
+let bookings = embedded;
+let sitters = [];
+
+function parseDate(v){
+  if(!v) return null;
+  let s=String(v).trim();
+  // Google/Excel-ish dates
+  let d=new Date(s);
+  if(!isNaN(d)) return new Date(d.getFullYear(),d.getMonth(),d.getDate());
+  const m=s.match(/(\d{1,2})[-\/ ]([A-Za-z]{3,9})[-\/ ](\d{4})/);
+  if(m){let mon=new Date(Date.parse(m[2]+" 1, 2000")).getMonth(); return new Date(+m[3],mon,+m[1]);}
+  return null;
+}
+function timeRanges(s){
+  if(!s) return [];
+  s=String(s).toLowerCase().replace(/–|—/g,"-").replace(/\./g,":").replace(/to/g,"-");
+  // Multiple ranges separated by comma
+  return s.split(",").map(x=>x.trim()).map(x=>{
+    let m=x.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\s*-\s*(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i);
+    if(!m) return null;
+    let ap1=m[3], ap2=m[6]||ap1;
+    let h1=+m[1], mi1=+(m[2]||0), h2=+m[4], mi2=+(m[5]||0);
+    if(ap1==="pm"&&h1<12)h1+=12;if(ap1==="am"&&h1===12)h1=0;
+    if(ap2==="pm"&&h2<12)h2+=12;if(ap2==="am"&&h2===12)h2=0;
+    return [h1*60+mi1,h2*60+mi2];
+  }).filter(Boolean);
+}
+function singleTime(s){
+  if(!s)return null;
+  let x=String(s).toLowerCase().replace(/\./g,":");
+  let m=x.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i); if(!m)return null;
+  let h=+m[1], mi=+(m[2]||0), ap=m[3];
+  if(ap==="pm"&&h<12)h+=12;if(ap==="am"&&h===12)h=0;
+  return h*60+mi;
+}
+function normalize(){
+  bookings=bookings.map(b=>({...b,team_member:String(b.team_member||"").trim()})).filter(b=>b.team_member);
+  sitters=[...new Set(bookings.map(b=>b.team_member))];
+  const sel=document.getElementById("sitter"); sel.innerHTML='<option>All sitters</option>'+sitters.map(s=>`<option>${escapeHtml(s)}</option>`).join("");
+}
+function overlaps(b,date,minute){
+  let sd=parseDate(b.start_date), ed=parseDate(b.end_date); if(!sd||!ed)return false;
+  const day=new Date(date.getFullYear(),date.getMonth(),date.getDate());
+  if(day<sd||day>ed)return false;
+  // Same-day / boundary handling. For multi-day stays, mark from check-in on first day,
+  // through check-out on last day; full middle days are booked.
+  let ranges=[];
+  if(day.getTime()===sd.getTime() && day.getTime()===ed.getTime()){
+    ranges=timeRanges(b.check_in); if(!ranges.length){let a=singleTime(b.check_in),z=singleTime(b.check_out);if(a!=null&&z!=null)ranges=[[a,z]];}
+    if(ranges.length){let out=timeRanges(b.check_out); if(out.length && ranges.length===1) ranges=[[ranges[0][0],out[out.length-1][1]]];}
+  } else if(day.getTime()===sd.getTime()){
+    ranges=timeRanges(b.check_in); if(!ranges.length){let a=singleTime(b.check_in); if(a!=null)ranges=[[a,24*60]];}
+    // Split drop-ins on first day are handled by their explicit range(s)
+  } else if(day.getTime()===ed.getTime()){
+    ranges=timeRanges(b.check_out); if(!ranges.length){let z=singleTime(b.check_out);if(z!=null)ranges=[[0,z]];}
+  } else {
+    ranges=[[0,24*60]];
+  }
+  return ranges.some(r=>minute<r[1] && minute+30>r[0]);
+}
+function status(s,date,minute){
+  const bs=bookings.filter(b=>b.team_member===s);
+  return bs.some(b=>overlaps(b,date,minute));
+}
+function fmt12(min){
+  let h=Math.floor(min/60), m=min%60, ap=h>=12?"PM":"AM"; h=h%12||12;
+  return h+(m?":"+String(m).padStart(2,"0"):"")+" "+ap;
+}
+function dayLabel(d){return d.toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"long",year:"numeric"});}
+function render(){
+  const v=document.getElementById("date").value; if(!v)return;
+  const [y,m,dd]=v.split("-").map(Number), date=new Date(y,m-1,dd);
+  document.getElementById("dateTitle").textContent=dayLabel(date);
+  const chosen=document.getElementById("sitter").value;
+  const people=chosen==="All sitters"?sitters:[chosen];
+  let out="<thead><tr><th class='time'>Time</th>"+people.map(s=>`<th>${escapeHtml(s)}</th>`).join("")+"</tr></thead><tbody>";
+  for(let t=0;t<24*60;t+=30){
+    out+=`<tr><td class='time'>${fmt12(t)}</td>`;
+    for(const s of people){
+      const b=status(s,date,t);
+      out+=`<td><div class="cell ${b?'booked':'available'}">${b?'BOOKED':'AVAILABLE'}</div></td>`;
+    }
+    out+="</tr>";
+  }
+  out+="</tbody>"; document.getElementById("grid").innerHTML=out;
+}
+function findAvailability(){
+  const v=document.getElementById("findDate").value; if(!v)return;
+  const [y,m,d]=v.split("-").map(Number), date=new Date(y,m-1,d);
+  const a=document.getElementById("from").value.split(":").map(Number), z=document.getElementById("to").value.split(":").map(Number);
+  const from=a[0]*60+a[1], to=z[0]*60+z[1];
+  const box=document.getElementById("results");
+  box.innerHTML=sitters.map(s=>{
+    let free=true; for(let t=from;t<to;t+=30) if(status(s,date,t)){free=false;break;}
+    return `<div class="result"><b>${escapeHtml(s)}</b><span class="${free?'yes':'no'}">${free?'✓ Available':'✕ Booked during this window'}</span></div>`;
+  }).join("");
+}
+async function loadSheet(){
+  const url=document.getElementById("sheetUrl").value.trim();
+  if(!url){showBanner("Paste your published Google Sheet CSV URL first.");return}
+  try{
+    const res=await fetch(url); if(!res.ok)throw new Error("Could not read the sheet");
+    const text=await res.text(); bookings=parseCSV(text); normalize(); render(); findAvailability();
+    showBanner("Updated from Google Sheet.",false);
+  }catch(e){showBanner("I couldn't read that sheet URL. Make sure the Google Sheet is published to the web as CSV and the URL is correct.");}
+}
+function parseCSV(text){
+  const lines=text.replace(/\r/g,"").split("\n").filter(x=>x.trim());
+  const rows=lines.map(line=>{
+    let out=[],cur="",q=false;
+    for(let i=0;i<line.length;i++){let c=line[i];if(c=='"'){if(q&&line[i+1]=='"'){cur+='"';i++}else q=!q}else if(c==","&&!q){out.push(cur);cur=""}else cur+=c}out.push(cur);return out;
+  });
+  const h=rows.shift().map(x=>x.trim().toLowerCase());
+  const idx=n=>h.findIndex(x=>x.replace(/[^a-z]/g,"").includes(n));
+  const iM=idx("teammember"),iS=idx("servicetype"),iSD=idx("startdate"),iCI=idx("checkin"),iED=idx("enddate"),iCO=idx("checkout");
+  return rows.map(r=>({team_member:r[iM],service:r[iS],start_date:r[iSD],check_in:r[iCI],end_date:r[iED],check_out:r[iCO]})).filter(x=>x.team_member);
+}
+function showBanner(msg,show=true){const b=document.getElementById("banner");b.textContent=msg;b.style.display=show?"block":"block"; if(!show)setTimeout(()=>b.style.display="none",2500)}
+function today(){const d=new Date();document.getElementById("date").value=iso(d);document.getElementById("findDate").value=iso(d);render();findAvailability()}
+function iso(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
+document.getElementById("date").addEventListener("change",render);
+document.getElementById("sitter").addEventListener("change",render);
+window.addEventListener("load",()=>{normalize();today();});
+</script>
+</body></html>
