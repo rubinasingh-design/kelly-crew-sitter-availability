@@ -5,370 +5,193 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Kelly & Crew — Sitter Availability</title>
 <style>
-  :root { --green:#1f9d55; --red:#d64545; --ink:#24303a; --muted:#6b7780; --line:#e6e9ec; --bg:#f6f7f8; }
-  * { box-sizing:border-box; }
-  body { margin:0; font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; color:var(--ink); background:var(--bg); }
-  .wrap { max-width:1400px; margin:auto; padding:24px; }
-  h1 { margin:0 0 6px; font-size:28px; }
-  .sub { color:var(--muted); margin-bottom:22px; }
-  .card { background:white; border:1px solid var(--line); border-radius:14px; padding:16px; margin-bottom:16px; box-shadow:0 2px 10px rgba(0,0,0,.03); }
-  .controls { display:grid; grid-template-columns:2fr 1fr 1fr auto auto; gap:10px; align-items:end; }
-  label { font-size:12px; font-weight:700; color:var(--muted); display:block; margin-bottom:5px; }
-  input,select,button { height:42px; border:1px solid #d7dce0; border-radius:9px; padding:0 12px; font:inherit; background:white; }
-  button { cursor:pointer; font-weight:700; }
-  button.primary { background:#24303a; color:white; border-color:#24303a; }
-  .status { margin-top:10px; font-size:13px; color:var(--muted); }
-  .tabs { display:flex; gap:8px; margin-bottom:14px; }
-  .tab.active { background:#24303a; color:white; border-color:#24303a; }
-  .nav { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
-  .nav h2 { margin:0; font-size:19px; }
-  .nav .buttons { display:flex; gap:7px; }
-  .legend { display:flex; gap:14px; font-size:12px; color:var(--muted); }
-  .dot { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:5px; }
-  .dot.av { background:var(--green); } .dot.bo { background:var(--red); }
-  .timeline { overflow:auto; border:1px solid var(--line); border-radius:10px; }
-  table { border-collapse:separate; border-spacing:0; width:100%; min-width:950px; }
-  th,td { border-right:1px solid var(--line); border-bottom:1px solid var(--line); }
-  th:last-child,td:last-child { border-right:0; }
-  tr:last-child td { border-bottom:0; }
-  th { background:#fafbfb; position:sticky; top:0; z-index:2; font-size:12px; padding:10px 8px; }
-  td { padding:0; height:30px; text-align:center; font-size:11px; }
-  .timecol { position:sticky; left:0; z-index:3; background:#fafbfb; width:75px; min-width:75px; font-weight:700; color:var(--muted); }
-  th.timecol { z-index:5; }
-  .slot.available { background:#e9f8ef; color:#237746; }
-  .slot.booked { background:#fbeaea; color:#b33b3b; }
-  .slot:hover { outline:2px solid #24303a; outline-offset:-2px; }
-  .daycard { border:1px solid var(--line); border-radius:12px; overflow:hidden; margin-bottom:12px; }
-  .dayhead { padding:10px 12px; background:#fafbfb; display:flex; justify-content:space-between; align-items:center; gap:10px; }
-  .dayhead strong { font-size:14px; }
-  .mini { color:var(--muted); font-size:12px; }
-  .weekgrid { display:grid; grid-template-columns:150px repeat(7,minmax(115px,1fr)); overflow:auto; }
-  .weekgrid > div { border-right:1px solid var(--line); border-bottom:1px solid var(--line); }
-  .weekgrid > div:nth-child(8n) { border-right:0; }
-  .weekhead { background:#fafbfb; padding:10px; font-weight:800; font-size:12px; text-align:center; position:sticky; top:0; z-index:2; }
-  .weekname { padding:12px 10px; font-weight:800; background:#fff; position:sticky; left:0; z-index:1; }
-  .bar { height:34px; margin:6px; border-radius:7px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; }
-  .bar.av { background:#e9f8ef; color:#237746; }
-  .bar.bo { background:#fbeaea; color:#b33b3b; }
-  .bar.mixed { background:linear-gradient(90deg,#e9f8ef 0 35%,#fbeaea 35% 65%,#e9f8ef 65%); color:#5c6267; }
-  .availability { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
-  .person { border:1px solid var(--line); border-radius:10px; padding:12px; }
-  .person h3 { margin:0 0 5px; font-size:15px; }
-  .person .windows { font-size:13px; line-height:1.55; }
-  .good { color:var(--green); font-weight:700; }
-  .bad { color:var(--red); font-weight:700; }
-  .issues { background:#fff8e8; border:1px solid #f1d28b; color:#775b1d; }
-  .issues ul { margin:8px 0 0 18px; padding:0; }
-  .small { font-size:12px; color:var(--muted); }
-  @media(max-width:900px) {
-    .controls { grid-template-columns:1fr 1fr; }
-    .availability { grid-template-columns:1fr; }
-    .weekgrid { min-width:1050px; }
-  }
+:root{--ink:#26313b;--muted:#6d7881;--line:#e3e7ea;--bg:#f6f7f8;--green:#1f9d55;--red:#d64545;--greenbg:#eaf8ef;--redbg:#fbeaea;--amber:#8a671d;--amberbg:#fff8e5}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.wrap{max-width:1450px;margin:auto;padding:24px}h1{margin:0 0 5px;font-size:29px}.sub{color:var(--muted);margin-bottom:20px}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:16px;box-shadow:0 2px 10px rgba(0,0,0,.03)}
+.controls{display:grid;grid-template-columns:minmax(320px,2fr) 150px 170px auto auto;gap:10px;align-items:end}
+label{display:block;font-size:12px;font-weight:800;color:var(--muted);margin-bottom:5px}
+input,select,button{height:42px;border:1px solid #d5dbe0;border-radius:9px;background:#fff;padding:0 12px;font:inherit}
+button{cursor:pointer;font-weight:800}button.primary{background:#26313b;color:#fff;border-color:#26313b}
+.status{margin-top:10px;font-size:13px;color:var(--muted)}.tabs{display:flex;gap:8px;margin-bottom:14px}
+.tab.active{background:#26313b;color:#fff;border-color:#26313b}.nav{display:flex;justify-content:space-between;align-items:center;gap:12px}.nav h2{margin:0;font-size:19px}.buttons{display:flex;gap:7px}
+.legend{display:flex;gap:15px;font-size:12px;color:var(--muted);margin-top:9px}.dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:5px}.dot.av{background:var(--green)}.dot.bo{background:var(--red)}
+.availability{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.person{border:1px solid var(--line);border-radius:10px;padding:12px}.person h3{margin:0 0 5px;font-size:15px}.windows{font-size:13px;line-height:1.5}.good{color:var(--green);font-weight:750}.bad{color:var(--red);font-weight:750}
+.timeline{overflow:auto;max-height:72vh;border:1px solid var(--line);border-radius:10px}table{border-collapse:separate;border-spacing:0;width:100%;min-width:760px}th,td{border-right:1px solid var(--line);border-bottom:1px solid var(--line)}th:last-child,td:last-child{border-right:0}tr:last-child td{border-bottom:0}th{background:#fafbfb;position:sticky;top:0;z-index:2;font-size:12px;padding:10px 8px}td{height:28px;padding:0;text-align:center;font-size:10px}
+.timecol{position:sticky;left:0;z-index:3;background:#fafbfb;width:75px;min-width:75px;font-weight:800;color:var(--muted)}th.timecol{z-index:5}.slot.available{background:var(--greenbg);color:#237746}.slot.booked{background:var(--redbg);color:#b33b3b}.slot:hover{outline:2px solid var(--ink);outline-offset:-2px}
+.weekwrap{overflow:auto}.weekgrid{display:grid;grid-template-columns:150px repeat(7,minmax(125px,1fr));min-width:1050px}.weekgrid>div{border-right:1px solid var(--line);border-bottom:1px solid var(--line)}.weekgrid>div:nth-child(8n){border-right:0}
+.weekhead{background:#fafbfb;padding:10px 7px;font-weight:800;font-size:12px;text-align:center}.weekname{padding:12px 10px;font-weight:800;background:#fff;position:sticky;left:0;z-index:1}.bar{height:34px;margin:6px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:850}.bar.av{background:var(--greenbg);color:#237746}.bar.bo{background:var(--redbg);color:#b33b3b}.bar.mixed{background:linear-gradient(90deg,var(--greenbg) 0 34%,var(--redbg) 34% 66%,var(--greenbg) 66%);color:#5c6267}
+.small{font-size:11px;color:var(--muted);line-height:1.4}.issue{background:var(--amberbg);border:1px solid #efcf82;color:var(--amber)}.issue ul{margin:8px 0 0 18px;padding:0}.source{font-size:12px;color:var(--muted)}
+@media(max-width:900px){.controls{grid-template-columns:1fr 1fr}.availability{grid-template-columns:1fr}.wrap{padding:12px}}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>Kelly & Crew — Sitter Availability</h1>
-  <div class="sub">Live availability from your schedule. Booked time is shown in red; open time is green.</div>
+<h1>Kelly & Crew — Sitter Availability</h1>
+<div class="sub">Plan sitter capacity by day or week. Red = booked, green = available.</div>
 
-  <div class="card">
-    <div class="controls">
-      <div>
-        <label>Google Sheet published CSV</label>
-        <input id="sheetUrl" value="https://docs.google.com/spreadsheets/d/e/2PACX-1vTTmBppAO5PAB3_r4aE_F2fic-5kVHUmKCSPEiKyRI5rNwQasj5OkZIsTLqB6xSNA/pub?output=csv">
-      </div>
-      <div>
-        <label>Date</label>
-        <input id="datePicker" type="date" value="2026-09-21">
-      </div>
-      <div>
-        <label>Sitter</label>
-        <select id="sitter"><option value="ALL">All sitters</option></select>
-      </div>
-      <button class="primary" id="refreshBtn">Refresh Sheet</button>
-      <button id="localBtn">Use Current Schedule</button>
-    </div>
-    <div class="status" id="status">Using the schedule embedded in this page. Refresh Sheet will try the published Google Sheet first.</div>
-  </div>
+<div class="card">
+<div class="controls">
+<div><label>Published Google Sheet</label><input id="sheetUrl"></div>
+<div><label>Date</label><input id="datePicker" type="date" value="2026-09-21"></div>
+<div><label>Sitter</label><select id="sitter"><option value="ALL">All sitters</option></select></div>
+<button class="primary" id="refreshBtn">Refresh Sheet</button>
+<button id="localBtn">Use Saved Schedule</button>
+</div>
+<div class="status" id="status">Loading the saved schedule…</div>
+</div>
 
-  <div class="tabs">
-    <button class="tab active" id="dayTab">Daily View</button>
-    <button class="tab" id="weekTab">Weekly View</button>
-  </div>
-
-  <div id="app"></div>
+<div class="tabs">
+<button class="tab active" id="dayTab">Daily View</button>
+<button class="tab" id="weekTab">Weekly View</button>
+</div>
+<div id="app"></div>
 </div>
 
 <script>
-const DEFAULT_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTTmBppAO5PAB3_r4aE_F2fic-5kVHUmKCSPEiKyRI5rNwQasj5OkZIsTLqB6xSNA/pub?output=csv";
-const EMBEDDED = [["Rahul", "Stay", "16-Sept-2026", "12 PM", "27-Sept-2026", "6 PM"], ["Rahul", "Drop-in", "2026-10-03", "4 PM", "2026-10-03", "11.30 PM"], ["Rahul", "Stay", "2026-10-16", "9 AM", "2026-10-21", "9 PM"], ["Evan", "Trial", "15-Sept-2026", "8 AM", "15-Sept-2026", "9 AM"], ["Evan", "Drop in", "20-Sept-2026", "5 PM", "20-Sept-2026", "11 PM"], ["Evan", "Drop in", "22-Sept-2026", "12.30 PM", "22-Sept-2026", "5.30 PM"], ["Evan", "Drop-in", "2026-10-01", "3 PM", "2026-10-06", "8 PM"], ["Evan", "Drop-in", "2026-10-02", "7 PM- 8.30 PM", "2026-10-02", "7 PM- 8.30 PM"], ["Evan", "Drop-in", "2026-10-03", "8-9.30 am, 7-8.30 pm", "2026-10-05", "8-8.30 am, 7-8.30 pm"], ["Evan", "Drop-in", "2026-10-06", "8 AM", "2026-10-05", "9.30 AM"], ["Evan", "Drop-in", "2026-10-10", "8 AM", "2026-10-23", "9.30 AM"], ["Evan", "Drop-in", "2026-10-10", "10.30 AM", "2026-10-15", "12 PM"], ["Kritan", "Daily Drop-in", "06-Sept-2026", "8.15 am to 2.15 pm", "14-Sept-2026", "8.15 am to 2.15 pm"], ["Kritan", "Stay", "17-Sept-2026", "5 PM", "20-Sept-2026", "10 PM"], ["Kritan", "Stay", "2026-10-14", "5 PM", "2026-10-23", "8 PM"]];
-let bookings = [];
-let sitters = ["Rahul","Evan","Kritan"];
+const DEFAULT_SHEET_URL="https://docs.google.com/spreadsheets/d/e/2PACX-1vTTmBppAO5PAB3_r4aE_F2fic-5kVHUmKCSPEiKyRI5rNwQasj5OkZIsTLqB6xSNA/pubhtml";
+const EMBEDDED=[["Rahul", "Stay", "16-Sept-2026", "12 PM", "27-Sept-2026", "6 PM"], ["Rahul", "Drop-in", "3-Oct-2026", "4 PM", "3-Oct-2026", "11:30 PM"], ["Rahul", "Stay", "16-Oct-2026", "9 AM", "21-Oct-2026", "9 PM"], ["Evan", "Trial", "15-Sept-2026", "8 AM", "15-Sept-2026", "9 AM"], ["Evan", "Drop in", "20-Sept-2026", "5 PM", "20-Sept-2026", "11 PM"], ["Evan", "Drop in", "22-Sept-2026", "12:30 PM", "22-Sept-2026", "5:30 PM"], ["Evan", "Daily Drop-in", "1-Oct-2026", "2 PM", "6-Oct-2026", "6 PM"], ["Evan", "Drop-in", "2-Oct-2026", "7 PM", "2-Oct-2026", "8:30 PM"], ["Evan", "Daily Drop-in", "3-Oct-2026", "8 AM", "5-Oct-2026", "9:30 AM"], ["Evan", "Daily Drop-in", "3-Oct-2026", "7 PM", "5-Oct-2026", "8:30 PM"], ["Evan", "Drop-in", "6-Oct-2026", "8 AM", "6-Oct-2026", "9:30 AM"], ["Evan", "Daily Drop-in", "10-Oct-2026", "8 AM", "23-Oct-2026", "9:30 AM"], ["Evan", "Daily Drop-in", "10-Oct-2026", "10:30 AM", "15-Oct-2026", "12 PM"], ["Kritan", "Daily Drop-in", "6-Sept-2026", "8:15 AM", "14-Sept-2026", "2:15 PM"], ["Kritan", "Stay", "17-Sept-2026", "5 PM", "20-Sept-2026", "10 PM"], ["Kritan", "Stay", "14-Oct-2026", "5 PM", "23-Oct-2026", "8 PM"]];
+let bookings=[],sitters=["Rahul","Evan","Kritan"],scheduleIssues=[];
 
-const $ = id => document.getElementById(id);
-const pad = n => String(n).padStart(2,"0");
-const dateKey = (y,m,d) => `${y}-${pad(m)}-${pad(d)}`;
+const $=id=>document.getElementById(id);
+const pad=n=>String(n).padStart(2,"0");
+const dateKey=(y,m,d)=>`${y}-${pad(m)}-${pad(d)}`;
 
-function parseDate(v) {
-  if (v instanceof Date && !isNaN(v)) return new Date(v.getFullYear(),v.getMonth(),v.getDate());
-  let s = String(v ?? "").trim();
-  if (!s) return null;
-  let m = s.match(/^(\d{4})[\-\/]([01]?\d)[\-\/]([0-3]?\d)/);
-  if (m) return new Date(+m[1],+m[2]-1,+m[3]);
-  m = s.match(/^(\d{1,2})[\-\/]([A-Za-z]+)[\-\/](\d{4})$/);
-  if (m) {
-    const months={jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,sept:8,oct:9,nov:10,dec:11};
-    const mm=months[m[2].toLowerCase().slice(0,4)] ?? months[m[2].toLowerCase().slice(0,3)];
-    if (mm!==undefined) return new Date(+m[3],mm,+m[1]);
-  }
-  m = s.match(/^(\d{1,2})[\-\/](\d{1,2})[\-\/](\d{4})$/);
-  if (m) return new Date(+m[3],+m[2]-1,+m[1]);
-  const d=new Date(s);
-  return isNaN(d)?null:new Date(d.getFullYear(),d.getMonth(),d.getDate());
+function parseDate(v){
+  if(v instanceof Date&&!isNaN(v))return new Date(v.getFullYear(),v.getMonth(),v.getDate());
+  let s=String(v??"").trim();if(!s)return null;
+  let dm=s.match(/^Date\((\d+),(\d+),(\d+)\)$/);if(dm)return new Date(+dm[1],+dm[2],+dm[3]);
+  let m=s.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/);if(m)return new Date(+m[1],+m[2]-1,+m[3]);
+  m=s.match(/^(\d{1,2})[-\/]([A-Za-z]+)[-\/](\d{4})$/);
+  if(m){const mo={jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,sept:8,oct:9,nov:10,dec:11};const k=m[2].toLowerCase();const mm=mo[k]??mo[k.slice(0,3)];if(mm!==undefined)return new Date(+m[3],mm,+m[1]);}
+  m=s.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/);if(m)return new Date(+m[3],+m[2]-1,+m[1]);
+  const d=new Date(s);return isNaN(d)?null:new Date(d.getFullYear(),d.getMonth(),d.getDate());
 }
-
-function normalizeTimeText(s) {
-  return String(s??"").trim().replace(/\s+/g," ").replace(/\.(\d{1,2})(?=\s*(?:am|pm)\b)/gi,":$1");
+function normalizeTimeText(s){return String(s??"").trim().replace(/\s+/g," ").replace(/\.(\d{1,2})(?=\s*(?:am|pm)\b)/gi,":$1")}
+function toMinutes(t,defaultAp){
+  let s=normalizeTimeText(t).toLowerCase().replace(/\s+/g,"");if(!s)return null;
+  let m=s.match(/^(\d{1,2})(?::(\d{1,2}))?(am|pm)?$/i);if(!m)return null;
+  let h=+m[1],mi=+(m[2]||0),ap=m[3]||defaultAp||"";
+  if(ap){if(h===12)h=0;if(ap==="pm")h+=12}
+  return h<=23&&mi<=59?h*60+mi:null;
 }
-
-function toMinutes(t, fallbackMeridiem) {
-  let s=normalizeTimeText(t).toLowerCase().replace(/\s+/g,"");
-  if (!s) return null;
-  let m=s.match(/^(\d{1,2})(?::(\d{1,2}))?(am|pm)?$/i);
-  if (!m) return null;
-  let h=+m[1], min=+(m[2]||0), ap=m[3]||fallbackMeridiem||"";
-  if (ap) {
-    if (h===12) h=0;
-    if (ap==="pm") h+=12;
-  }
-  if (h>23 || min>59) return null;
-  return h*60+min;
-}
-
-function parseRanges(text) {
-  let s=normalizeTimeText(text);
-  if (!s) return [];
-  // Split multiple visits: commas or semicolon separators.
+function endpointRanges(text){
+  const s=normalizeTimeText(text);if(!s)return[];
   return s.split(/[,;]+/).map(x=>x.trim()).filter(Boolean).flatMap(part=>{
     part=part.replace(/\s+to\s+/i,"-");
-    let pieces=part.split(/\s*-\s*/);
-    if (pieces.length<2) {
-      const x=toMinutes(part);
-      return x==null?[]:[[x,Math.min(x+15,1440)]];
-    }
-    let a=pieces[0], b=pieces.slice(1).join("-");
-    let apB=(b.match(/(am|pm)\b/i)||[])[1]||"";
-    let apA=(a.match(/(am|pm)\b/i)||[])[1]||apB;
-    let start=toMinutes(a,apA), end=toMinutes(b,apB||apA);
-    if (start==null||end==null) return [];
-    // If no meridiem on either side, use the natural daytime interpretation.
-    if (end<start && !/am|pm/i.test(part)) end+=12*60;
-    if (end<start) end+=12*60;
+    const pieces=part.split(/\s*-\s*/);
+    if(pieces.length<2){const x=toMinutes(part);return x==null?[]:[[x,x]]}
+    const a=pieces[0],b=pieces.slice(1).join("-");
+    const apB=(b.match(/(am|pm)\b/i)||[])[1]||"";
+    const apA=(a.match(/(am|pm)\b/i)||[])[1]||apB;
+    let start=toMinutes(a,apA),end=toMinutes(b,apB||apA);
+    if(start==null||end==null)return[];
+    if(end<start&&!/am|pm/i.test(part))end+=720;
+    if(end<start)end+=720;
     return [[start,Math.min(end,1440)]];
   });
 }
-
-function daysBetween(a,b) {
-  const out=[]; let d=new Date(a);
-  while(d<=b) { out.push(new Date(d)); d.setDate(d.getDate()+1); }
-  return out;
-}
-
-function normalizeRows(rows) {
-  const result=[]; const issues=[];
+function normalizeRows(rows){
+  const out=[],issues=[];
   rows.forEach((r,i)=>{
-    const [person,type,startDate,checkIn,endDate,checkOut]=r;
-    if (!person || !startDate || !endDate) return;
-    const sd=parseDate(startDate), ed=parseDate(endDate);
-    if (!sd||!ed) { issues.push(`Row ${i+1} has an unreadable date.`); return; }
-    if (ed<sd) { issues.push(`Row ${i+1} (${person}) has an end date before its start date, so it was ignored.`); return; }
-    const inRanges=parseRanges(checkIn), outRanges=parseRanges(checkOut);
-    const service=String(type||"").toLowerCase();
-    result.push({person,type,start:sd,end:ed,inRanges,outRanges,service,rawIndex:i+1});
+    if(!r||r.length<6)return;
+    const person=String(r[0]??"").trim(),type=String(r[1]??"").trim(),sd=parseDate(r[2]),ed=parseDate(r[4]);
+    if(!person||!sd||!ed)return;
+    if(ed<sd){issues.push(`Row ${i+1} (${person}) has an end date before its start date and was ignored.`);return}
+    out.push({person,type,start:sd,end:ed,inRanges:endpointRanges(r[3]),outRanges:endpointRanges(r[5]),row:i+1});
   });
-  return {result,issues};
+  return{out,issues};
 }
-
-function blocksForDate(b,d) {
-  const k=dateKey(d.getFullYear(),d.getMonth()+1,d.getDate());
-  const sk=dateKey(b.start.getFullYear(),b.start.getMonth()+1,b.start.getDate());
-  const ek=dateKey(b.end.getFullYear(),b.end.getMonth()+1,b.end.getDate());
-  if(k<sk||k>ek) return [];
-  const isStay=b.service.includes("stay");
-  const isMulti=sk!==ek;
-  if(isStay) {
-    if(k===sk) return b.inRanges.length ? [[Math.min(...b.inRanges.map(x=>x[0])),1440]] : [[0,1440]];
-    if(k===ek) return b.outRanges.length ? [[0,Math.max(...b.outRanges.map(x=>x[1]))]] : [[0,1440]];
-    return [[0,1440]];
+function blocksForDate(b,d){
+  const k=dateKey(d.getFullYear(),d.getMonth()+1,d.getDate()),sk=dateKey(b.start.getFullYear(),b.start.getMonth()+1,b.start.getDate()),ek=dateKey(b.end.getFullYear(),b.end.getMonth()+1,b.end.getDate());
+  if(k<sk||k>ek)return[];
+  const isStay=b.type.toLowerCase().includes("stay"),isDaily=b.type.toLowerCase().includes("daily");
+  if(isStay){
+    if(k===sk)return[[b.inRanges.length?Math.min(...b.inRanges.map(x=>x[0])):0,1440]];
+    if(k===ek)return[[0,b.outRanges.length?Math.max(...b.outRanges.map(x=>x[1])):1440]];
+    return[[0,1440]];
   }
-  // Drop-in / Trial / Daily Drop-in: time ranges are visits, repeated on each date
-  // for a multi-day row. This keeps split visits separate.
-  if(isMulti) {
-    if(k===ek && b.outRanges.length && b.inRanges.length===0) return b.outRanges;
-    return b.inRanges.length ? b.inRanges : b.outRanges;
+  if(isDaily){
+    return (b.inRanges.length?b.inRanges:b.outRanges).filter(x=>x[1]>x[0]);
   }
-  if(b.inRanges.length && b.outRanges.length) {
-    // Same-day ordinary booking: pair first start with last end.
-    if(b.inRanges.length===1 && b.outRanges.length===1) return [[b.inRanges[0][0],b.outRanges[0][1]]];
-    // For split visits, preserve them as separate blocked windows.
-    return b.inRanges.map((x,idx)=>[x[0], (b.outRanges[idx]||b.outRanges[b.outRanges.length-1]||x)[1]]);
+  if(sk!==ek){
+    // A multi-day ordinary Drop-in is treated as a daily visit only if it has
+    // explicitly been entered as such; otherwise its first/last-day endpoints
+    // are used conservatively.
+    if(k===sk)return b.inRanges.filter(x=>x[1]>x[0]);
+    if(k===ek)return b.outRanges.filter(x=>x[1]>x[0]);
+    return[];
   }
-  return b.inRanges.length?b.inRanges:b.outRanges;
+  if(b.inRanges.length&&b.outRanges.length){
+    if(b.inRanges.length===1&&b.outRanges.length===1)return b.inRanges[0][0]===b.inRanges[0][1]&&b.outRanges[0][0]===b.outRanges[0][1]?[[b.inRanges[0][0],b.outRanges[0][0]]]:[[b.inRanges[0][0],b.outRanges[0][1]]];
+    return b.inRanges.map((x,i)=>[x[0],(b.outRanges[i]||b.outRanges[b.outRanges.length-1])[1]]).filter(x=>x[1]>x[0]);
+  }
+  return[];
 }
-
-function isBooked(person,d,slotStart,slotEnd) {
-  return bookings.some(b=>b.person===person && blocksForDate(b,d).some(([a,z])=>slotStart<z && slotEnd>a));
-}
-
-function mergeIntervals(intervals) {
-  const a=intervals.filter(x=>x[1]>x[0]).sort((x,y)=>x[0]-y[0]);
-  const out=[];
-  a.forEach(x=>{ const last=out[out.length-1]; if(last&&x[0]<=last[1]) last[1]=Math.max(last[1],x[1]); else out.push(x.slice()); });
-  return out;
-}
-
-function fmtMin(m) {
-  if(m>=1440) return "12 AM";
-  let h=Math.floor(m/60), mm=m%60, ap=h>=12?"PM":"AM", hh=h%12||12;
-  return `${hh}:${pad(mm)} ${ap}`.replace(":00 "," ");
-}
-function fmtDate(d) { return d.toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short"}); }
-
-function availableWindows(person,d) {
-  const booked=mergeIntervals(bookings.filter(b=>b.person===person).flatMap(b=>blocksForDate(b,d)));
-  let cur=0,out=[];
-  booked.forEach(([a,z])=>{if(cur<a)out.push([cur,a]); cur=Math.max(cur,z);});
-  if(cur<1440)out.push([cur,1440]);
-  return out;
-}
-
-function renderSitters() {
-  const selected=$("sitter").value;
-  $("sitter").innerHTML=`<option value="ALL">All sitters</option>`+sitters.map(s=>`<option ${s===selected?"selected":""}>${s}</option>`).join("");
-}
-
-function renderDay() {
-  const d=parseDate($("datePicker").value); if(!d)return;
-  const people=$("sitter").value==="ALL"?sitters:[$("sitter").value];
-  let h=`<div class="card"><div class="nav"><h2>${fmtDate(d)} — Daily View</h2><div class="buttons"><button onclick="moveDay(-1)">‹ Prev</button><button onclick="moveDay(1)">Next ›</button></div></div>`;
-  h+=`<div class="legend"><span><i class="dot av"></i>Available</span><span><i class="dot bo"></i>Booked</span><span class="small">15-minute resolution</span></div></div>`;
+function merge(a){const arr=a.filter(x=>x[1]>x[0]).sort((x,y)=>x[0]-y[0]),o=[];arr.forEach(x=>{let z=o[o.length-1];if(z&&x[0]<=z[1])z[1]=Math.max(z[1],x[1]);else o.push(x.slice())});return o}
+function isBooked(person,d,a,z){return bookings.some(b=>b.person===person&&blocksForDate(b,d).some(x=>a<x[1]&&z>x[0]))}
+function fmtMin(m){if(m>=1440)return"12 AM";let h=Math.floor(m/60),mi=m%60,ap=h>=12?"PM":"AM",hh=h%12||12;return`${hh}:${pad(mi)} ${ap}`.replace(":00 "," ")}
+function fmtDate(d){return d.toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short"})}
+function availableWindows(person,d){let booked=merge(bookings.filter(b=>b.person===person).flatMap(b=>blocksForDate(b,d))),cur=0,o=[];booked.forEach(x=>{if(cur<x[0])o.push([cur,x[0]]);cur=Math.max(cur,x[1])});if(cur<1440)o.push([cur,1440]);return o}
+function issueHtml(){return scheduleIssues.length?`<div class="card issue"><strong>Schedule issue(s) detected</strong><ul>${scheduleIssues.map(x=>`<li>${x}</li>`).join("")}</ul></div>`:""}
+function renderSitters(){const cur=$("sitter").value;$("sitter").innerHTML=`<option value="ALL">All sitters</option>`+sitters.map(s=>`<option value="${s}" ${s===cur?"selected":""}>${s}</option>`).join("")}
+function renderDay(){
+  const d=parseDate($("datePicker").value);if(!d)return;const people=$("sitter").value==="ALL"?sitters:[$("sitter").value];
+  let h=`<div class="card"><div class="nav"><h2>${fmtDate(d)} — Daily View</h2><div class="buttons"><button onclick="moveDay(-1)">‹ Prev</button><button onclick="moveDay(1)">Next ›</button></div></div><div class="legend"><span><i class="dot av"></i>Available</span><span><i class="dot bo"></i>Booked</span><span>15-minute resolution</span></div></div>`;
   h+=`<div class="card"><div class="availability">`;
-  people.forEach(p=>{
-    const wins=availableWindows(p,d);
-    const text=wins.length?wins.map(x=>`${fmtMin(x[0])}–${fmtMin(x[1])}`).join(", "):"No availability";
-    h+=`<div class="person"><h3>${p}</h3><div class="windows ${wins.length?"good":"bad"}">${text}</div></div>`;
-  });
-  h+=`</div></div>`;
-  h+=`<div class="card"><div class="timeline"><table><thead><tr><th class="timecol">Time</th>${people.map(p=>`<th>${p}</th>`).join("")}</tr></thead><tbody>`;
-  for(let m=0;m<1440;m+=15){
-    h+=`<tr><td class="timecol">${fmtMin(m)}</td>`;
-    people.forEach(p=>h+=`<td class="slot ${isBooked(p,d,m,m+15)?"booked":"available"}" title="${p} — ${fmtMin(m)} to ${fmtMin(m+15)}">${isBooked(p,d,m,m+15)?"BOOKED":"AVAILABLE"}</td>`);
-    h+=`</tr>`;
-  }
-  h+=`</tbody></table></div></div>`;
-  h+=issuesHtml();
-  $("app").innerHTML=h;
+  people.forEach(p=>{const w=availableWindows(p,d);h+=`<div class="person"><h3>${p}</h3><div class="windows ${w.length?"good":"bad"}">${w.length?w.map(x=>`${fmtMin(x[0])}–${fmtMin(x[1])}`).join(", "):"No availability"}</div></div>`});
+  h+=`</div></div><div class="card"><div class="timeline"><table><thead><tr><th class="timecol">Time</th>${people.map(p=>`<th>${p}</th>`).join("")}</tr></thead><tbody>`;
+  for(let m=0;m<1440;m+=15){h+=`<tr><td class="timecol">${fmtMin(m)}</td>`;people.forEach(p=>{const b=isBooked(p,d,m,m+15);h+=`<td class="slot ${b?"booked":"available"}" title="${p} — ${fmtMin(m)} to ${fmtMin(m+15)}">${b?"BOOKED":"AVAILABLE"}</td>`});h+="</tr>"}
+  h+=`</tbody></table></div></div>${issueHtml()}`;$("app").innerHTML=h;
 }
-
-function startOfWeek(d) {
-  const x=new Date(d), day=x.getDay(); x.setDate(x.getDate()-day); return x;
-}
-function renderWeek() {
-  const d=parseDate($("datePicker").value); if(!d)return;
-  const sun=startOfWeek(d), people=$("sitter").value==="ALL"?sitters:[$("sitter").value];
-  const days=Array.from({length:7},(_,i)=>{let x=new Date(sun);x.setDate(x.getDate()+i);return x;});
+function startWeek(d){const x=new Date(d),day=x.getDay();x.setDate(x.getDate()-day);return x}
+function renderWeek(){
+  const d=parseDate($("datePicker").value);if(!d)return;const sun=startWeek(d),people=$("sitter").value==="ALL"?sitters:[$("sitter").value],days=Array.from({length:7},(_,i)=>{let x=new Date(sun);x.setDate(x.getDate()+i);return x});
   let h=`<div class="card"><div class="nav"><h2>Week of ${fmtDate(days[0])} – ${fmtDate(days[6])}</h2><div class="buttons"><button onclick="moveWeek(-7)">‹ Prev week</button><button onclick="moveWeek(7)">Next week ›</button></div></div><div class="legend"><span><i class="dot av"></i>Available</span><span><i class="dot bo"></i>Booked</span></div></div>`;
-  h+=`<div class="card"><div class="weekgrid"><div class="weekhead">Sitter</div>${days.map(x=>`<div class="weekhead">${fmtDate(x)}</div>`).join("")}`;
-  people.forEach(p=>{
-    h+=`<div class="weekname">${p}</div>`;
-    days.forEach(day=>{
-      const wins=availableWindows(p,day), booked=mergeIntervals(bookings.filter(b=>b.person===p).flatMap(b=>blocksForDate(b,day)));
-      let cls=booked.length===0?"av":wins.length===0?"bo":"mixed";
-      let label=booked.length===0?"AVAILABLE":wins.length===0?"BOOKED":"MIXED";
-      h+=`<div><div class="bar ${cls}" title="${p} — ${fmtDate(day)}: ${label}">${label}</div><div class="small" style="padding:0 8px 8px">${wins.length?wins.map(x=>`${fmtMin(x[0])}–${fmtMin(x[1])}`).join(", "):"No open time"}</div></div>`;
-    });
-  });
-  h+=`</div></div>`;
-  h+=issuesHtml();
-  $("app").innerHTML=h;
+  h+=`<div class="card weekwrap"><div class="weekgrid"><div class="weekhead">Sitter</div>${days.map(x=>`<div class="weekhead">${fmtDate(x)}</div>`).join("")}`;
+  people.forEach(p=>{h+=`<div class="weekname">${p}</div>`;days.forEach(day=>{const w=availableWindows(p,day),booked=merge(bookings.filter(b=>b.person===p).flatMap(b=>blocksForDate(b,day))),cls=!booked.length?"av":!w.length?"bo":"mixed",label=!booked.length?"AVAILABLE":!w.length?"BOOKED":"MIXED";h+=`<div><div class="bar ${cls}">${label}</div><div class="small" style="padding:0 8px 8px">${w.length?w.map(x=>`${fmtMin(x[0])}–${fmtMin(x[1])}`).join(", "):"No open time"}</div></div>`})});
+  h+=`</div></div>${issueHtml()}`;$("app").innerHTML=h;
 }
+function moveDay(n){const d=parseDate($("datePicker").value);d.setDate(d.getDate()+n);$("datePicker").value=dateKey(d.getFullYear(),d.getMonth()+1,d.getDate());renderDay()}
+function moveWeek(n){const d=parseDate($("datePicker").value);d.setDate(d.getDate()+n);$("datePicker").value=dateKey(d.getFullYear(),d.getMonth()+1,d.getDate());renderWeek()}
 
-function issuesHtml() {
-  return window.scheduleIssues?.length ? `<div class="card issues"><strong>Schedule issue(s) detected</strong><ul>${window.scheduleIssues.map(x=>`<li>${x}</li>`).join("")}</ul><div class="small" style="margin-top:8px">The invalid row(s) were excluded rather than creating misleading availability.</div></div>` : "";
+function loadRows(rows,source){const n=normalizeRows(rows);bookings=n.out;scheduleIssues=n.issues;sitters=[...new Set(bookings.map(b=>b.person))];renderSitters();renderDay();$("status").textContent=`Loaded ${bookings.length} bookings from ${source}.`+(scheduleIssues.length?` ${scheduleIssues.length} issue(s) flagged below.`:"")}
+function parseGVizResponse(resp){
+  const cols=resp.table.cols.map(c=>(c.label||c.id||"").toLowerCase().trim());
+  const idx=(...names)=>names.map(n=>cols.indexOf(n)).find(i=>i>=0);
+  const ti=idx("team member","team","sitter"),si=idx("service type","service"),sd=idx("start date","start"),st=idx("start time","check-in","check in"),ed=idx("end date","end"),et=idx("end time","check-out","check out");
+  if([ti,sd,st,ed,et].some(x=>x==null))throw new Error("The sheet columns were not recognised.");
+  return resp.table.rows.map(r=>{const vals=r.c.map(c=>c?((c.v??c.f??"")):"");return[vals[ti],si==null?"":vals[si],vals[sd],vals[st],vals[ed],vals[et]]})
 }
-
-function moveDay(n) {
-  const d=parseDate($("datePicker").value); d.setDate(d.getDate()+n);
-  $("datePicker").value=dateKey(d.getFullYear(),d.getMonth()+1,d.getDate()); renderDay();
-}
-function moveWeek(n) {
-  const d=parseDate($("datePicker").value); d.setDate(d.getDate()+n);
-  $("datePicker").value=dateKey(d.getFullYear(),d.getMonth()+1,d.getDate()); renderWeek();
-}
-
-function loadRows(rows,source) {
-  const norm=normalizeRows(rows); bookings=norm.result; window.scheduleIssues=norm.issues;
-  sitters=[...new Set(bookings.map(b=>b.person))].filter(Boolean);
-  renderSitters(); renderDay();
-  $("status").textContent=`Loaded ${bookings.length} valid bookings from ${source}.`+(window.scheduleIssues.length?` ${window.scheduleIssues.length} schedule issue(s) flagged below.`:"");
-}
-
-function csvParse(text) {
-  const rows=[]; let row=[], cell="", quote=false;
-  for(let i=0;i<text.length;i++) {
-    const c=text[i], n=text[i+1];
-    if(c=='"' && quote && n=='"') {cell+='"';i++;continue;}
-    if(c=='"') {quote=!quote;continue;}
-    if(c=="," && !quote) {row.push(cell);cell="";continue;}
-    if((c=="\n"||c=="\r")&&!quote) {
-      if(c=="\r"&&n=="\n")i++;
-      row.push(cell);cell="";
-      if(row.some(x=>x.trim()!=="")) rows.push(row);
-      row=[]; continue;
+function loadGViz(url){
+  return new Promise((resolve,reject)=>{
+    const cb="kellyCrewCallback_"+Date.now()+"_"+Math.floor(Math.random()*10000);
+    let script=document.createElement("script"),done=false,timer;
+    window[cb]=data=>{done=true;clearTimeout(timer);try{resolve(parseGVizResponse(data))}catch(e){reject(e)}finally{delete window[cb];script.remove()}};
+    script.onerror=()=>{if(done)return;done=true;clearTimeout(timer);delete window[cb];script.remove();reject(new Error("Google Sheet could not be read."))};
+    const pubIdMatch=url.match(/\/d\/e\/([^/]+)/);if(!pubIdMatch)reject(new Error("Please use the Google Sheets Published to the web link."));
+    else{
+      const pubId=pubIdMatch[1];
+      script.src=`https://docs.google.com/spreadsheets/d/e/${pubId}/gviz/tq?tqx=responseHandler:${cb}`;
+      document.head.appendChild(script);
+      timer=setTimeout(()=>{if(done)return;done=true;delete window[cb];script.remove();reject(new Error("Google Sheet timed out."))},15000);
     }
-    cell+=c;
-  }
-  row.push(cell); if(row.some(x=>x.trim()!==""))rows.push(row);
-  return rows;
+  })
 }
-
-async function fetchCSV(url) {
-  const res=await fetch(url,{cache:"no-store"});
-  if(!res.ok) throw new Error(`HTTP ${res.status}`);
-  const text=await res.text();
-  if(!text || text.trim().startsWith("<")) throw new Error("The published URL did not return CSV data.");
-  return csvParse(text);
+async function refreshSheet(){
+  const url=$("sheetUrl").value.trim();
+  $("status").textContent="Reading your published Google Sheet…";
+  try{const rows=await loadGViz(url);loadRows(rows,"your Google Sheet")}
+  catch(e){$("status").textContent=`Could not read the published sheet (${e.message}). The saved schedule is still available; check that the sheet is published to the web.`}
 }
-
-function rowsFromCSV(rows) {
-  if(!rows.length)return [];
-  const header=rows[0].map(x=>String(x).trim().toLowerCase());
-  const idx=(...names)=>names.map(n=>header.indexOf(n)).find(i=>i>=0);
-  const ti=idx("team member","team","sitter"), si=idx("service type","service"), sd=idx("start date","start"), ci=idx("check-in","check in","checkin"), ed=idx("end date","end"), co=idx("check-out","check out","checkout");
-  if([ti,sd,ci,ed,co].some(i=>i==null||i<0)) throw new Error("I found the sheet, but its columns were not recognised. Required: Team Member, Start Date, Check-In, End Date, Check-Out.");
-  return rows.slice(1).map(r=>[r[ti],si>=0?r[si]:"",r[sd],r[ci],r[ed],r[co]]);
-}
-
-async function refreshSheet() {
-  const url=$("sheetUrl").value.trim()||DEFAULT_SHEET_URL;
-  $("status").textContent="Trying to read the published Google Sheet…";
-  try {
-    const rows=await fetchCSV(url);
-    loadRows(rowsFromCSV(rows),"your Google Sheet");
-  } catch(e) {
-    $("status").textContent="I couldn't read that published CSV directly from this browser. The current schedule is still available below. If this persists on GitHub Pages, the Google Sheet needs to be published with the sheet tab set to public.";
-  }
-}
-
-$("dayTab").onclick=()=>{ $("dayTab").classList.add("active");$("weekTab").classList.remove("active");renderDay(); };
-$("weekTab").onclick=()=>{ $("weekTab").classList.add("active");$("dayTab").classList.remove("active");renderWeek(); };
-$("datePicker").onchange=()=>{ document.getElementById("weekTab").classList.contains("active")?renderWeek():renderDay(); };
-$("sitter").onchange=()=>{ document.getElementById("weekTab").classList.contains("active")?renderWeek():renderDay(); };
+$("dayTab").onclick=()=>{$("dayTab").classList.add("active");$("weekTab").classList.remove("active");renderDay()}
+$("weekTab").onclick=()=>{$("weekTab").classList.add("active");$("dayTab").classList.remove("active");renderWeek()}
+$("datePicker").onchange=()=>{$("weekTab").classList.contains("active")?renderWeek():renderDay()}
+$("sitter").onchange=()=>{$("weekTab").classList.contains("active")?renderWeek():renderDay()}
 $("refreshBtn").onclick=refreshSheet;
-$("localBtn").onclick=()=>loadRows(EMBEDDED,"the uploaded schedule");
-
-loadRows(EMBEDDED,"the uploaded schedule");
+$("localBtn").onclick=()=>loadRows(EMBEDDED,"the saved backup schedule");
+$("sheetUrl").value=DEFAULT_SHEET_URL;
+loadRows(EMBEDDED,"the saved backup schedule");
 </script>
 </body>
 </html>
