@@ -24,6 +24,7 @@ button{cursor:pointer;font-weight:800}button.primary{background:#26313b;color:#f
 .small{font-size:11px;color:var(--muted);line-height:1.4}.issue{background:var(--amberbg);border:1px solid #efcf82;color:var(--amber)}.issue ul{margin:8px 0 0 18px;padding:0}.source{font-size:12px;color:var(--muted)}
 @media(max-width:900px){.controls{grid-template-columns:1fr 1fr}.availability{grid-template-columns:1fr}.wrap{padding:12px}}
 </style>
+<script src="https://www.gstatic.com/charts/loader.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -165,19 +166,32 @@ function parseGVizResponse(resp){
 }
 function loadGViz(url){
   return new Promise((resolve,reject)=>{
-    const cb="kellyCrewCallback_"+Date.now()+"_"+Math.floor(Math.random()*10000);
-    let script=document.createElement("script"),done=false,timer;
-    window[cb]=data=>{done=true;clearTimeout(timer);try{resolve(parseGVizResponse(data))}catch(e){reject(e)}finally{delete window[cb];script.remove()}};
-    script.onerror=()=>{if(done)return;done=true;clearTimeout(timer);delete window[cb];script.remove();reject(new Error("Google Sheet could not be read."))};
-    const pubIdMatch=url.match(/\/d\/e\/([^/]+)/);if(!pubIdMatch)reject(new Error("Please use the Google Sheets Published to the web link."));
-    else{
-      const pubId=pubIdMatch[1];
-      script.src=`https://docs.google.com/spreadsheets/d/e/${pubId}/gviz/tq?tqx=responseHandler:${cb}`;
-      document.head.appendChild(script);
-      timer=setTimeout(()=>{if(done)return;done=true;delete window[cb];script.remove();reject(new Error("Google Sheet timed out."))},15000);
-    }
+    const m=url.match(/\/d\/e\/([^/]+)/); if(!m){reject(new Error("Please use the Google Sheets Published to the web link."));return;}
+    const dataUrl=`https://docs.google.com/spreadsheets/d/e/${m[1]}/gviz/tq`;
+    const run=()=>{
+      try{
+        const q=new google.visualization.Query(dataUrl,{sendMethod:"scriptInjection"});
+        q.setQuery("select *");
+        q.send(resp=>{
+          if(resp.isError()){reject(new Error(resp.getMessage()||"Google Sheet could not be read."));return;}
+          const dt=resp.getDataTable();
+          const cols=[]; for(let c=0;c<dt.getNumberOfColumns();c++) cols.push((dt.getColumnLabel(c)||"").toLowerCase().trim());
+          const idx=(...names)=>names.map(n=>cols.indexOf(n)).find(i=>i>=0);
+          const ti=idx("team member","team","sitter"),si=idx("service type","service"),sd=idx("start date","start"),st=idx("start time","check-in","check in"),ed=idx("end date","end"),et=idx("end time","check-out","check out");
+          if([ti,sd,st,ed,et].some(x=>x==null)) throw new Error("The sheet columns were not recognised.");
+          const rows=[];
+          for(let r=0;r<dt.getNumberOfRows();r++){
+            const val=i=>i==null?"":dt.getFormattedValue(r,i)||dt.getValue(r,i)||"";
+            rows.push([val(ti),si==null?"":val(si),val(sd),val(st),val(ed),val(et)]);
+          }
+          resolve(rows);
+        });
+      }catch(e){reject(e)}
+    };
+    if(window.google&&google.charts){google.charts.setOnLoadCallback(run)}else{reject(new Error("Google Charts could not be loaded."))}
   })
 }
+
 async function refreshSheet(){
   const url=$("sheetUrl").value.trim();
   $("status").textContent="Reading your published Google Sheet…";
@@ -190,6 +204,7 @@ $("datePicker").onchange=()=>{$("weekTab").classList.contains("active")?renderWe
 $("sitter").onchange=()=>{$("weekTab").classList.contains("active")?renderWeek():renderDay()}
 $("refreshBtn").onclick=refreshSheet;
 $("localBtn").onclick=()=>loadRows(EMBEDDED,"the saved backup schedule");
+if(window.google&&google.charts) google.charts.load("current");
 $("sheetUrl").value=DEFAULT_SHEET_URL;
 loadRows(EMBEDDED,"the saved backup schedule");
 </script>
